@@ -68,40 +68,39 @@
 /* Copy the first part of user declarations.  */
 
 /* Line 189 of yacc.c  */
-#line 1 "assembler.y"
+#line 1 "cpu.y"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 char  *yytext;
-FILE  *yyin;
-FILE  *outfile;
+FILE  *fileIn;
+FILE  *fileOut;
 int   yy_flex_debug;
 int   execute;
 
-
-typedef struct { 
-  char labelname[4];
+typedef struct
+{ char labelname[4];
   int  pid;
   int  memloc;
 } ILABEL;
 
-typedef struct { 
-  char label[5];
+typedef struct 
+{ char label[5];
   int address;
 } JSYM;
 
-typedef struct { 
-  char varname[11];
+typedef struct 
+{ char varname[11];
   int address;
 } VTABLE;
 
-VTABLE vtable[50];      // variable/address name table
-int vtablex = 0;
-int vaddress = 0;
+VTABLE vtable[50];  // variable/address name table
+int vtablex=0;
+int vaddress=0;
 
-ILABEL ilabel[10];      // store mem loc for label
+ILABEL ilabel[10];  // store mem loc for label
 int ilabelindex = 0;
 int initdataindex = 0;
 
@@ -114,15 +113,37 @@ JSYM refjsym[30];
 int refex=0;
 int locex=0;
 
-typedef struct { 
-  char idop[11];
+typedef struct 
+{ char idop[11];
   int type;
 } PARSE;
 
 PARSE parse[100];
+//PARSE parsecopy[20];
+//int copysindex=0;
+//int ifstck[10];
+
+/* #define GMAX 30
+char glovars[GMAX][11];
+char locvars[GMAX][11];
+unsigned int nglob;
+*/
 
 int yylex(void);
 void yyerror(char *);
+
+
+#define keyhit(a) {printf("hit enter --(%d)", a); getchar();}
+
+
+/*
+char storage[11];
+char *gid[11];
+char assID[11];
+char prevID[11];
+char optype[3];
+int assIDon = 1;
+*/
 
 int i,j,kkkk;
 
@@ -130,26 +151,27 @@ int  sindex = 0;
 int  pindex = 0;
 int  memloc = 0;
 
-#define MAXPRO 6          // max num of processes
-#define MAXMEM 200        // max size of a process
-#define STACKSIZE 100     // max size of the stack
-#define REGISTERSIZE 10   // size of each process registers
-#define MAXGMEM 20        // max size of global memory
-#define NORMAL 0          // denotes a normal return from exe()
-#define LOCKED 1          // stops process switching until unlock
-#define UNLOCKED 2        // remove lock
+#define MAXPRO 6   //max num of processes
+#define MAXMEM 200 //max size of a process
+#define STACKSIZE 100 //max size of the stack
+#define REGISTERSIZE 10 //size of each process registers
+#define MAXGMEM 20 //max size of global memory
+#define NORMAL 0 //denotes a normal return from exe()
+#define LOCKED 1 //stops process switching until unlock
+#define UNLOCKED 2 //remove lock
 #define ENDPROCESS 3
-#define p0WRITE 4         // tells p0 to run-p0 should only run after a write to gmem
-
-int gmem[MAXGMEM];        // global var sit here 
+#define p0WRITE 4 //tells p0 to run-p0 should only run after a write to gmem
+int  gmem[MAXGMEM];   //global var sit here 
 int mem[MAXPRO][MAXMEM]; 
-int endprog[MAXPRO];      // last instruction of proc
-int jsym[60]; 
-int pid = 0;              // process id
+int endprog[MAXPRO]; // last instruction of proc
+int  jsym[60]; 
+int pid = 0;  //process id
 
-int p0running;
+  int p0running;
+
 
 //execute one instruction return 0 if instruction is not lock
+//int exe(int **stack,int sp[], int next_inst, int cur_proc);
 int exe(int stack[][STACKSIZE],int sp[],int reg[][REGISTERSIZE], int next_instruct[],int next_inst[], int cur_proc);
 int pop(int stack[][STACKSIZE], int proc_id, int sp[], int calledfrom);
 void push(int stack[][STACKSIZE], int proc_id, int sp[],int data, int calledfrom);
@@ -157,50 +179,56 @@ void print_stack(int stack[][STACKSIZE],int sp[]); //debug
 void print_register(int reg[][REGISTERSIZE]); //debug
 void print_gmem();
 
-int showparse(int beg) { 
-  int i;
 
-  for (i=beg; i<sindex; i++)   
-    printf("############## i=%d  %s, (type)%d\n", i, parse[i].idop, parse[i].type);
-      
-  printf("end show\n");
+
+
+
+int showparse( int beg)
+{ int i;
+        for (i=beg; i<sindex; i++)
+        {  printf("############## i=%d  %s, (type)%d\n",
+                                i, parse[i].idop, parse[i].type);
+        }
+        printf("end show\n");
 }
 
 #if 0
-  int termcopy(int beg) { 
-    int i, j;
-    printf("termcopy: storage loc calc here\n");
-    j = 0;        
-    strcpy(parsecopy[j].idop, parse[beg].idop);
-    parsecopy[j].type = parse[beg].type;
+int termcopy(int beg)
+{ int i, j;
+         printf("termcopy: storage loc calc here\n");
+         j = 0;        
+         strcpy(parsecopy[j].idop, parse[beg].idop);
+         parsecopy[j].type = parse[beg].type;
  
-    printf("%s  ->   %s\n", parse[beg].idop, parsecopy[beg].idop);
+printf("%s  ->   %s\n", parse[beg].idop, parsecopy[beg].idop);
 
-    if(parse[beg+1].idop[0] == '[') { 
-      i= beg+1; 
-      j++;
-      do { 
-        /* append parse[i].idop to tgt */
-        strcpy(parsecopy[j].idop, parse[i].idop);
-        printf("%s  ->   %s\n", parse[i].idop, parsecopy[j].idop);
-        parsecopy[j].type = parse[beg].type;
-        j++;
-      } while (parse[i++].idop[0] != ']');
-    }
-
-    copysindex = j;
-  }
+         if(parse[beg+1].idop[0] == '[')
+         { i= beg+1; j++;
+           do { /* append parse[i].idop to tgt */
+             strcpy(parsecopy[j].idop, parse[i].idop);
+printf("%s  ->   %s\n", parse[i].idop, parsecopy[j].idop);
+             parsecopy[j].type = parse[beg].type;
+             j++;
+           } while (parse[i++].idop[0] != ']');
+         }
+         copysindex = j;
+}
 #endif
 
-int showterm( int beg) { 
-  int i;
-  return;
+int showterm( int beg)
+{ int i;
+        return;
+
+        for (i=beg; i<sindex; i++)
+        {
+        }
 }
+
 
 
 
 /* Line 189 of yacc.c  */
-#line 204 "assembler.tab.c"
+#line 232 "cpu.tab.c"
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
@@ -281,15 +309,14 @@ typedef union YYSTYPE
 {
 
 /* Line 214 of yacc.c  */
-#line 131 "assembler.y"
-
-  int intval;
-  char *sptr;
+#line 160 "cpu.y"
+int intval;
+ char *sptr;
 
 
 
 /* Line 214 of yacc.c  */
-#line 293 "assembler.tab.c"
+#line 320 "cpu.tab.c"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -301,7 +328,7 @@ typedef union YYSTYPE
 
 
 /* Line 264 of yacc.c  */
-#line 305 "assembler.tab.c"
+#line 332 "cpu.tab.c"
 
 #ifdef short
 # undef short
@@ -605,12 +632,12 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   187,   187,   198,   199,   200,   203,   206,   211,   212,
-     215,   227,   256,   257,   260,   261,   264,   269,   270,   273,
-     276,   352,   363,   375,   376,   379,   393,   401,   422,   427,
-     432,   437,   442,   447,   460,   465,   474,   483,   488,   493,
-     498,   503,   517,   522,   527,   532,   537,   542,   547,   552,
-     557,   562,   567,   577,   582
+       0,   214,   214,   225,   226,   227,   231,   237,   243,   244,
+     247,   265,   297,   298,   301,   306,   310,   315,   316,   322,
+     328,   410,   423,   438,   439,   442,   459,   467,   503,   509,
+     515,   521,   527,   533,   550,   557,   568,   579,   585,   591,
+     597,   603,   622,   628,   634,   640,   646,   652,   658,   664,
+     670,   676,   682,   694,   702
 };
 #endif
 
@@ -1578,636 +1605,679 @@ yyreduce:
         case 2:
 
 /* Line 1455 of yacc.c  */
-#line 187 "assembler.y"
-    { 
-      int j,k;
-      printf("END of ProgramA\n");
-      for(j=0; j<ilabelindex; j++) {
-        printf("pid = %d\n", ilabel[j].pid );
-         printf("memloc = %d\n", ilabel[j].memloc);
-         printf("name = %s\n", ilabel[j].labelname);
-      }
-  ;}
+#line 215 "cpu.y"
+    {int j,k;
+            printf("END of ProgramA\n");
+          for(j=0; j<ilabelindex; j++)
+          {
+           printf("pid = %d\n", ilabel[j].pid );
+           printf("memloc = %d\n", ilabel[j].memloc);
+           printf("name = %s\n", ilabel[j].labelname);
+          }
+         ;}
     break;
 
   case 4:
 
 /* Line 1455 of yacc.c  */
-#line 199 "assembler.y"
+#line 226 "cpu.y"
     {; ;}
     break;
 
   case 5:
 
 /* Line 1455 of yacc.c  */
-#line 200 "assembler.y"
+#line 227 "cpu.y"
     {;;}
     break;
 
   case 6:
 
 /* Line 1455 of yacc.c  */
-#line 203 "assembler.y"
-    {;;}
+#line 232 "cpu.y"
+    {;
+          ;}
     break;
 
   case 7:
 
 /* Line 1455 of yacc.c  */
-#line 206 "assembler.y"
-    { 
-      sindex=0;
-    ;}
+#line 238 "cpu.y"
+    { sindex=0;
+          ;}
     break;
 
   case 10:
 
 /* Line 1455 of yacc.c  */
-#line 215 "assembler.y"
-    { 
-      int i = 0;
-      strcpy(vtable[vtablex].varname, parse[i].idop);
-      vtable[vtablex].address=vaddress;
-      vtablex++;
-      vaddress++;
+#line 248 "cpu.y"
+    { int i;
+                //for (i=0; i<sindex; i++)
+                i=0;
+                { 
+                   strcpy(vtable[vtablex].varname, parse[i].idop);
+                   vtable[vtablex].address=vaddress;
+                   vtablex++;
+                   vaddress++;
 
-      showsymtable();
-                
-      gmem[memloc++]=0;
-      sindex = 0;
-    ;}
+showsymtable();
+//keyhit(9);
+
+                }
+                gmem[memloc++]=0;
+                //showterm(0);
+                sindex = 0;
+              ;}
     break;
 
   case 11:
 
 /* Line 1455 of yacc.c  */
-#line 227 "assembler.y"
-    { 
-      int i,j;
+#line 266 "cpu.y"
+    { int i,j;
 
-      printf("term comma term\n");
-      showparse(0);
-      printf("vtablex=%d vaddress:%d\n", vtablex, vaddress);
+printf("term comma term\n");
+showparse(0);
+printf("vtablex=%d vaddress:%d\n", vtablex, vaddress);
 
-      strcpy(vtable[vtablex].varname, parse[0].idop);
+                strcpy(vtable[vtablex].varname, parse[0].idop);
 
-      vtable[vtablex].address=vaddress;
-      sscanf(parse[2].idop, "%d", &i);
+                vtable[vtablex].address=vaddress;
+                sscanf(parse[2].idop, "%d", &i);
 
-      printf("vtable[%d].varname=%s, parse[0].idop=%s\n", 
-      vtablex, vtable[vtablex].varname,    parse[0].idop);
-      printf(" vtable[vtablex].address=%d\n", vtablex, vtable[vtablex].address);
-   
-      vaddress += i;
-      vtablex++;
+printf("vtable[%d].varname=%s, parse[0].idop=%s\n", 
+    vtablex, vtable[vtablex].varname,    parse[0].idop);
+printf(" vtable[vtablex].address=%d\n", vtablex, vtable[vtablex].address);
+ //keyhit(99);
 
-      showsymtable();
-      printf("vtablex=%d vaddress:%d\n", vtablex, vaddress);
+                vaddress += i;
+                vtablex++;
 
-      for(j = 0; j < i; j++)  
-        gmem[memloc++]=0;
-      
-      sindex = 0;
-    ;}
+showsymtable();
+printf("vtablex=%d vaddress:%d\n", vtablex, vaddress);
+ //keyhit(10);
+
+                for(j=0; j<i; j++)
+                {  gmem[memloc++]=0;
+                }
+                //showterm(0);
+                sindex = 0;
+              ;}
     break;
 
   case 14:
 
 /* Line 1455 of yacc.c  */
-#line 260 "assembler.y"
-    {;}
+#line 302 "cpu.y"
+    { //printf("inidata\n");
+           //showparse(0);
+         ;}
     break;
 
   case 15:
 
 /* Line 1455 of yacc.c  */
-#line 261 "assembler.y"
-    {;}
+#line 307 "cpu.y"
+    {
+         ;}
     break;
 
   case 16:
 
 /* Line 1455 of yacc.c  */
-#line 264 "assembler.y"
-    { 
-      sindex=0;
-    ;}
+#line 311 "cpu.y"
+    { sindex=0;
+         ;}
     break;
 
   case 18:
 
 /* Line 1455 of yacc.c  */
-#line 270 "assembler.y"
-    {;}
+#line 317 "cpu.y"
+    {// printf("labels\n");
+           //showparse(0);
+         ;}
     break;
 
   case 19:
 
 /* Line 1455 of yacc.c  */
-#line 273 "assembler.y"
-    {;}
+#line 323 "cpu.y"
+    { //printf("labl\n");
+           //showparse(0);
+         ;}
     break;
 
   case 20:
 
 /* Line 1455 of yacc.c  */
-#line 276 "assembler.y"
-    { 
-      int i, j, k;
-      int ch; 
-      char *chptr;
+#line 329 "cpu.y"
+    { int i, j, k;
+           int ch; 
+           char *chptr;
 
-      printf("collabeldata\n");
-      showparse(0);
-      printf("==================================\n");
-      printf("parse[0].idop=%s\n", parse[0].idop);
-      printf("parse[2].idop=%s\n", parse[2].idop);
+           printf("collabeldata\n");
+           showparse(0);
+  printf("==================================\n");
+   printf("parse[0].idop=%s\n", parse[0].idop);
+   printf("parse[2].idop=%s\n", parse[2].idop);
 
-      for(j=0; j<ilabelindex; j++) {
-        printf("pid = %d\n", ilabel[j].pid );
-        printf("memloc = %d\n", ilabel[j].memloc);
-        printf("name = %s\n", ilabel[j].labelname);
+          for(j=0; j<ilabelindex; j++)
+          {
+           printf("pid = %d\n", ilabel[j].pid );
+           printf("memloc = %d\n", ilabel[j].memloc);
+           printf("name = %s\n", ilabel[j].labelname);
 
-        if( ilabel[j].memloc != -999) { 
-          printf("compare ilabel's %s  and label parsed %s\n", ilabel[j].labelname,  parse[0].idop); 
-        
-          if( strcmp(ilabel[j].labelname ,  parse[0].idop)==0) { 
-            printf("label found, endprog is at  %d\n", endprog[ ilabel[j].pid] );
-            chptr =  parse[2].idop;
-            for( ; *chptr; chptr++) 
-              printf("%c", *chptr);
+           if( ilabel[j].memloc != -999)
+           { printf("compare ilabel's %s  and label parsed %s\n",
+             ilabel[j].labelname,  parse[0].idop); 
+             if( strcmp(ilabel[j].labelname ,  parse[0].idop)==0)
+             { printf("label found, endprog is at  %d\n",
+                  endprog[ ilabel[j].pid] );
 
-            printf("\n");
+               chptr =  parse[2].idop;
+               for( ; *chptr; chptr++) 
+               { printf("%c", *chptr);
+               }
+                printf("\n");
 
-            chptr =  parse[2].idop;
-            mem[ ilabel[j].pid][ ilabel[j].memloc ] = endprog[ilabel[j].pid];
-                 
-            for( ; *chptr; chptr++) { 
-              printf("at %d: locating '%c'\n", endprog[ilabel[j].pid], *chptr);
-              mem[ilabel[j].pid][endprog[ilabel[j].pid]] = *chptr;
-              endprog[ilabel[j].pid]++;
-            }
+               chptr =  parse[2].idop;
+               mem[ ilabel[j].pid][ ilabel[j].memloc ] = 
+                                                  endprog[ilabel[j].pid];
+               for( ; *chptr; chptr++) 
+               { printf("at %d: locating '%c'\n", 
+                  endprog[ilabel[j].pid], *chptr);
+                  mem[ilabel[j].pid][endprog[ilabel[j].pid]] = *chptr;
+                  endprog[ilabel[j].pid]++;
+               }
+               mem[ ilabel[j].pid][endprog[ilabel[j].pid]] = 0;
+               endprog[ilabel[j].pid]++;
+               ilabel[j].memloc = -999;
+             } 
+           }
 
-           mem[ ilabel[j].pid][endprog[ilabel[j].pid]] = 0;
-           endprog[ilabel[j].pid]++;
-           ilabel[j].memloc = -999;
-         } 
-       }
+          }
 
-    }
 
-    printf("==================================\n");
-    printf("==================================\n");
-    
-    for(j=0; j<ilabelindex; j++)
-      printf("pid = %d  end lo = %d\n", ilabel[j].pid, endprog[ilabel[j].pid]);
-    
-    printf("==================================\n");
+  printf("==================================\n");
+  printf("==================================\n");
+for(j=0; j<ilabelindex; j++)
+printf("pid = %d  end lo = %d\n", ilabel[j].pid, endprog[ilabel[j].pid]);
+  printf("==================================\n");
 
-    // allocate parse[2].idop to initdatasection[]
-    // and backpatch Li labels. 
+   // allocate parse[2].idop to initdatasection[]
+   // and backpatch Li labels. 
+//ILABEL ilabel[10];  // store mem loc for label
+//int ilabelindex = 0;
+/*typedef struct
+{ char labelname[4];
+  int  pid;
+  int  memloc;
+} ILABEL;
+*/      
 
-    printf("index2initdata[%d] =  %d\n", index2index, initdataindex);       
-    index2initdata[index2index]=initdataindex;       
-
-    for (k=0; ch = *((char *)(parse[2].idop)+k); k++)
-      initdatasection[initdataindex++]= ch;
-    
-    index2index++;
+       printf("index2initdata[%d] =  %d\n", index2index, initdataindex);       
+       index2initdata[index2index]=initdataindex;       
+       for (k=0; ch = *((char *)(parse[2].idop)+k); k++)
+        initdatasection[initdataindex++]= ch;
+       index2index++;
  
-    for(k=0; k<initdataindex; k++)
-      printf("%c", initdatasection[k]);
-    
-    printf("\n");
-    
-    for(k = 0; k < index2index; k++)
-      printf("%d  ", index2initdata[k]);
-    
-    printf("\n==================================\n");
-    sindex = 0;
-  ;}
+        for(k=0; k<initdataindex; k++)
+             printf("%c", initdatasection[k]);
+        printf("\n");
+        for(k=0; k<index2index; k++)
+             printf("%d  ", index2initdata[k]);
+  printf("\n==================================\n");
+            sindex = 0;
+         ;}
     break;
 
   case 21:
 
 /* Line 1455 of yacc.c  */
-#line 352 "assembler.y"
+#line 411 "cpu.y"
     {
-       mem[pid][memloc++]=END;
-       sindex=0;
-       endprog[pid]=memloc; // last instruction location+1
-       printf("at END refex=%d locex=%d\n", refex, locex);
-       showjsym(); 
-       refex = locex = 0;
-       pid++;
-     ;}
+                 mem[pid][memloc++]=END;
+                 sindex=0;
+                 endprog[pid]=memloc; // last instruction location+1
+printf("at END refex=%d locex=%d\n", refex, locex);
+                 showjsym(); 
+                 refex = locex = 0;
+                 pid++;
+               ;}
     break;
 
   case 22:
 
 /* Line 1455 of yacc.c  */
-#line 363 "assembler.y"
+#line 424 "cpu.y"
     {
-      showterm(0);
-      sindex = 0; 
-      memloc = 10;
-      
-      if(pid > MAXPRO) {
-        fprintf(stderr,"max num of proccesses currently 6\n");
-        exit(1);
-      }
-    ;}
+                //printf("PROC\n");
+                showterm(0);
+                sindex = 0; 
+                memloc = 10;
+                if(pid>MAXPRO) 
+                   {fprintf(stderr,"max num of proccesses currently 6\n");
+                    exit(1);
+                   }
+              ;}
     break;
 
   case 25:
 
 /* Line 1455 of yacc.c  */
-#line 379 "assembler.y"
-    {
-      int i, j;
-      mem[pid][memloc++] = LOAD;
-      i = searchvtable(parse[0].idop, &j, 1);
-      if ( i >= 230 ) 
-         mem[pid][memloc++]=i;
-      else {
-         printf("vtable[%d].address=%d\n",i, vtable[i].address);
-         mem[pid][memloc++]=vtable[i].address;
-       }
-
-       showterm(0);
-       sindex = 0;
-    ;}
+#line 443 "cpu.y"
+    {int i, j;
+            mem[pid][memloc++]=LOAD;
+             i=searchvtable(parse[0].idop, &j, 1);
+             if( i>=230 )
+             {
+               mem[pid][memloc++]=i;
+             }
+             else
+             {
+       printf("vtable[%d].address=%d\n",i, vtable[i].address);
+    //   keyhit(543);
+               mem[pid][memloc++]=vtable[i].address;
+             }
+             showterm(0);
+             sindex = 0;
+           ;}
     break;
 
   case 26:
 
 /* Line 1455 of yacc.c  */
-#line 393 "assembler.y"
-    {
-      int i;
-      mem[pid][memloc++] = LOADI;
-      sscanf(parse[0].idop, "%d", &i);
-      mem[pid][memloc++]=i;
-      showterm(0);
-      sindex = 0;
-    ;}
+#line 460 "cpu.y"
+    {int i;
+            mem[pid][memloc++]=LOADI;
+             sscanf(parse[0].idop, "%d", &i);
+            mem[pid][memloc++]=i;
+             showterm(0);
+             sindex = 0;
+           ;}
     break;
 
   case 27:
 
 /* Line 1455 of yacc.c  */
-#line 401 "assembler.y"
-    { 
-      int i, j;
-      mem[pid][memloc++] = LA;
-      printf("LA term parse[0].idop = %s\n",parse[0].idop); 
-      i = searchvtable(parse[0].idop, &j, 2);
-      printf("LA term searchvtable ret val= %d\n", i); 
-
-      if( i == -999) { 
-        ilabel[ilabelindex].pid = pid;
-        ilabel[ilabelindex].memloc = memloc;
-        sprintf(ilabel[ilabelindex].labelname, "%s",  parse[0].idop);
-        ilabelindex++;
-        mem[pid][memloc++] = -999;
-        printf("wrote mem[%d][%d] =  %d\n", pid, memloc-1, mem[pid][memloc-1]); 
-      } else {
-        mem[pid][memloc++]=i;
-      }
-      
-      showterm(0);
-      sindex = 0;
-    ;}
+#line 468 "cpu.y"
+    { int i, j;
+            mem[pid][memloc++]=LA;
+printf("LA term parse[0].idop = %s\n",parse[0].idop); 
+             i=searchvtable(parse[0].idop, &j, 2);
+printf("LA term searchvtable ret val= %d\n", i); 
+//keyhit(645);
+             if( i == -999)
+             { ilabel[ilabelindex].pid = pid;
+               ilabel[ilabelindex].memloc = memloc;
+               sprintf(ilabel[ilabelindex].labelname,
+                 "%s",  parse[0].idop);
+               ilabelindex++;
+               mem[pid][memloc++]= -999;
+printf("wrote mem[%d][%d] =  %d\n", pid, memloc-1, mem[pid][memloc-1]); 
+/**
+{ int i,j;
+  printf("ilabelindex=%d\n",ilabelindex);
+          for(j=0; j<ilabelindex; j++)
+          {
+           printf("pid = %d\n", ilabel[j].pid );
+           printf("memloc = %d\n", ilabel[j].memloc);
+           printf("name = %s\n", ilabel[j].labelname);
+          }
+          keyhit(645);
+}
+**/
+             }
+             else
+             {
+               //mem[pid][memloc++]=j;
+               mem[pid][memloc++]=i;
+             }
+             showterm(0);
+             sindex = 0;
+           ;}
     break;
 
   case 28:
 
 /* Line 1455 of yacc.c  */
-#line 422 "assembler.y"
+#line 504 "cpu.y"
     {
-      mem[pid][memloc++]=OPEN;
-      showterm(0);
-      sindex = 0;
-    ;}
+            mem[pid][memloc++]=OPEN;
+                showterm(0);
+                sindex = 0;
+          ;}
     break;
 
   case 29:
 
 /* Line 1455 of yacc.c  */
-#line 427 "assembler.y"
+#line 510 "cpu.y"
     {
-      mem[pid][memloc++]=READ;
-      showterm(0);
-      sindex = 0;
-    ;}
+            mem[pid][memloc++]=READ;
+                showterm(0);
+                sindex = 0;
+          ;}
     break;
 
   case 30:
 
 /* Line 1455 of yacc.c  */
-#line 432 "assembler.y"
+#line 516 "cpu.y"
     {
-      mem[pid][memloc++]=WRITE;
-      showterm(0);
-      sindex = 0;
-    ;}
+            mem[pid][memloc++]=WRITE;
+                showterm(0);
+                sindex = 0;
+          ;}
     break;
 
   case 31:
 
 /* Line 1455 of yacc.c  */
-#line 437 "assembler.y"
+#line 522 "cpu.y"
     {
-      mem[pid][memloc++]=CLOSE;
-      showterm(0);
-      sindex = 0;
-    ;}
+            mem[pid][memloc++]=CLOSE;
+                showterm(0);
+                sindex = 0;
+          ;}
     break;
 
   case 32:
 
 /* Line 1455 of yacc.c  */
-#line 442 "assembler.y"
+#line 528 "cpu.y"
     {
-      mem[pid][memloc++]=SEEK;
-      showterm(0);
-      sindex = 0;
-    ;}
+            mem[pid][memloc++]=SEEK;
+                showterm(0);
+                sindex = 0;
+          ;}
     break;
 
   case 33:
 
 /* Line 1455 of yacc.c  */
-#line 447 "assembler.y"
-    {
-      int i, j;
-      showterm(0);
-      mem[pid][memloc++] = POPD;
-      i = searchvtable(parse[0].idop, &j, 31);
-      if( i >= 230 ) 
-        mem[pid][memloc++]=i;
-      else 
-        mem[pid][memloc++]=vtable[i].address;
-          
-      showterm(0);
-      sindex = 0;
-    ;}
+#line 534 "cpu.y"
+    {int i, j;
+                showterm(0);
+            mem[pid][memloc++]=POPD;
+             i=searchvtable(parse[0].idop, &j, 31);
+             if( i>=230 )
+             { // 230 and up is local var r?
+               mem[pid][memloc++]=i;
+             }
+             else
+             {
+               mem[pid][memloc++]=vtable[i].address;
+             }
+
+                showterm(0);
+                sindex = 0;
+           ;}
     break;
 
   case 34:
 
 /* Line 1455 of yacc.c  */
-#line 460 "assembler.y"
+#line 551 "cpu.y"
     {
-      mem[pid][memloc++]=POP;
-      showterm(0);
-      sindex = 0;
-    ;}
+            mem[pid][memloc++]=POP;
+                showterm(0);
+                sindex = 0;
+          ;}
     break;
 
   case 35:
 
 /* Line 1455 of yacc.c  */
-#line 465 "assembler.y"
+#line 558 "cpu.y"
     { 
-      mem[pid][memloc++]=JFALSE;
-      mem[pid][memloc]=-1;
-      refjsym[refex].address = memloc++;
-      sprintf( refjsym[refex].label, "%s", parse[0].idop);
-      refex++;
-      showterm(0);
-      sindex = 0;
-    ;}
+            mem[pid][memloc++]=JFALSE;
+            mem[pid][memloc]=-1;
+             //printf("label =  %s  %d\n", yylval.sptr, sindex);  
+                refjsym[refex].address = memloc++;
+                sprintf( refjsym[refex].label, "%s", parse[0].idop);
+                refex++;
+             showterm(0);
+             sindex = 0;
+           ;}
     break;
 
   case 36:
 
 /* Line 1455 of yacc.c  */
-#line 474 "assembler.y"
+#line 569 "cpu.y"
     {
-      mem[pid][memloc++] = JMP;
-      mem[pid][memloc] = -1;
-      refjsym[refex].address = memloc++;
-      sprintf( refjsym[refex].label, "%s", parse[0].idop);
-      refex++;
-      showterm(0);
-      sindex = 0;
-    ;}
+            mem[pid][memloc++]=JMP;
+            // printf("label =  %s  %d\n", yylval.sptr, sindex);  
+            mem[pid][memloc]=-1;
+                refjsym[refex].address = memloc++;
+                sprintf( refjsym[refex].label, "%s", parse[0].idop);
+                refex++;
+                showterm(0);
+                sindex = 0;
+           ;}
     break;
 
   case 37:
 
 /* Line 1455 of yacc.c  */
-#line 483 "assembler.y"
+#line 580 "cpu.y"
     {
-      mem[pid][memloc++]=LOCK;
-      showterm(0);
-      sindex = 0;
-    ;}
+            mem[pid][memloc++]=LOCK;
+                showterm(0);
+                sindex = 0;
+           ;}
     break;
 
   case 38:
 
 /* Line 1455 of yacc.c  */
-#line 488 "assembler.y"
+#line 586 "cpu.y"
     {
-      mem[pid][memloc++]=UNLOCK;
-      showterm(0);
-      sindex = 0;
-    ;}
+            mem[pid][memloc++]=UNLOCK;
+                showterm(0);
+                sindex = 0;
+           ;}
     break;
 
   case 39:
 
 /* Line 1455 of yacc.c  */
-#line 493 "assembler.y"
+#line 592 "cpu.y"
     {
-      mem[pid][memloc++]=LD;
-      showterm(0);
-      sindex = 0;
-    ;}
+            mem[pid][memloc++]=LD;
+                showterm(0);
+                sindex = 0;
+           ;}
     break;
 
   case 40:
 
 /* Line 1455 of yacc.c  */
-#line 498 "assembler.y"
+#line 598 "cpu.y"
     {
-      mem[pid][memloc++]=ST;
-      showterm(0);
-      sindex = 0;
-    ;}
+            mem[pid][memloc++]=ST;
+                showterm(0);
+                sindex = 0;
+           ;}
     break;
 
   case 41:
 
 /* Line 1455 of yacc.c  */
-#line 503 "assembler.y"
-    {
-      int i, j;
-      showterm(0);
-      mem[pid][memloc++]=STOR;
-      i = searchvtable(parse[0].idop, &j, 3);
-   
-      if( i >= 230 )  
-        mem[pid][memloc++] = i;
-      else
-        mem[pid][memloc++] = i;
+#line 604 "cpu.y"
+    {int i, j;
+                showterm(0);
+            mem[pid][memloc++]=STOR;
+             i=searchvtable(parse[0].idop, &j, 3);
+//printf("STOR %d\n", i); keyhit(89);
+             if( i>=230 )
+             { // 230 and up is local var r?
+               mem[pid][memloc++]=i;
+             }
+             else
+             {
+               //mem[pid][memloc++]=vtable[i].address;
+               mem[pid][memloc++]=i;
+             }
 
-      showterm(0);
-      sindex = 0;
-    ;}
+                showterm(0);
+                sindex = 0;
+           ;}
     break;
 
   case 42:
 
 /* Line 1455 of yacc.c  */
-#line 517 "assembler.y"
+#line 623 "cpu.y"
     {
-      mem[pid][memloc++] = EQ_OP;
-      showterm(0);
-      sindex = 0;
-    ;}
+            mem[pid][memloc++]=EQ_OP;
+                showterm(0);
+                sindex = 0;
+           ;}
     break;
 
   case 43:
 
 /* Line 1455 of yacc.c  */
-#line 522 "assembler.y"
+#line 629 "cpu.y"
     { 
-      mem[pid][memloc++]=GT_OP;
-      showterm(0);
-      sindex = 0;
-    ;}
+            mem[pid][memloc++]=GT_OP;
+                showterm(0);
+                sindex = 0;
+           ;}
     break;
 
   case 44:
 
 /* Line 1455 of yacc.c  */
-#line 527 "assembler.y"
+#line 635 "cpu.y"
     {
-      mem[pid][memloc++]=GE_OP;
-      showterm(0);
-      sindex = 0;
-    ;}
+            mem[pid][memloc++]=GE_OP;
+                showterm(0);
+                sindex = 0;
+           ;}
     break;
 
   case 45:
 
 /* Line 1455 of yacc.c  */
-#line 532 "assembler.y"
+#line 641 "cpu.y"
     {
-      mem[pid][memloc++]=LT_OP;
-      showterm(0);
-      sindex = 0;
-    ;}
+            mem[pid][memloc++]=LT_OP;
+                showterm(0);
+                sindex = 0;
+           ;}
     break;
 
   case 46:
 
 /* Line 1455 of yacc.c  */
-#line 537 "assembler.y"
+#line 647 "cpu.y"
     {
-      mem[pid][memloc++]=LE_OP;
-      showterm(0);
-      sindex = 0;
-    ;}
+            mem[pid][memloc++]=LE_OP;
+                showterm(0);
+                sindex = 0;
+           ;}
     break;
 
   case 47:
 
 /* Line 1455 of yacc.c  */
-#line 542 "assembler.y"
+#line 653 "cpu.y"
     {
-      mem[pid][memloc++]=ADD;
-      showterm(0);
-      sindex = 0;
-    ;}
+            mem[pid][memloc++]=ADD;
+                showterm(0);
+                sindex = 0;
+           ;}
     break;
 
   case 48:
 
 /* Line 1455 of yacc.c  */
-#line 547 "assembler.y"
+#line 659 "cpu.y"
     {
-      mem[pid][memloc++]=SUB;
-      showterm(0);
-      sindex = 0;
-    ;}
+            mem[pid][memloc++]=SUB;
+                showterm(0);
+                sindex = 0;
+           ;}
     break;
 
   case 49:
 
 /* Line 1455 of yacc.c  */
-#line 552 "assembler.y"
+#line 665 "cpu.y"
     {
-      mem[pid][memloc++]=AND;
-      showterm(0);
-      sindex = 0;
-    ;}
+            mem[pid][memloc++]=AND;
+                showterm(0);
+                sindex = 0;
+           ;}
     break;
 
   case 50:
 
 /* Line 1455 of yacc.c  */
-#line 557 "assembler.y"
+#line 671 "cpu.y"
     {
-      mem[pid][memloc++]=OR;
-      showterm(0);
-      sindex = 0;
-    ;}
+            mem[pid][memloc++]=OR;
+                showterm(0);
+                sindex = 0;
+           ;}
     break;
 
   case 51:
 
 /* Line 1455 of yacc.c  */
-#line 562 "assembler.y"
+#line 677 "cpu.y"
     {
-      mem[pid][memloc++]=HALT;
-      showterm(0);
-      sindex = 0;
-    ;}
+            mem[pid][memloc++]=HALT;
+                showterm(0);
+                sindex = 0;
+           ;}
     break;
 
   case 52:
 
 /* Line 1455 of yacc.c  */
-#line 567 "assembler.y"
+#line 683 "cpu.y"
     {
-      locjsym[locex].address = memloc;
-      sprintf( locjsym[locex].label, "%s", parse[0].idop);
-      locex++;
-      showterm(0);
-      sindex = 0;
-    ;}
+                locjsym[locex].address = memloc;
+                sprintf( locjsym[locex].label, "%s", parse[0].idop);
+                locex++;
+                showterm(0);
+                sindex = 0;
+           ;}
     break;
 
   case 53:
 
 /* Line 1455 of yacc.c  */
-#line 577 "assembler.y"
+#line 695 "cpu.y"
     {
-      sprintf( parse[sindex].idop, "%s", yylval.sptr);
-      parse[sindex].type = ID;
-      sindex++;
-    ;}
+              sprintf( parse[sindex].idop, "%s", yylval.sptr);
+              parse[sindex].type = ID;
+              sindex++;
+
+
+            ;}
     break;
 
   case 54:
 
 /* Line 1455 of yacc.c  */
-#line 582 "assembler.y"
+#line 703 "cpu.y"
     {
-      sprintf( parse[sindex].idop, "%s", yylval.sptr);
-      parse[sindex].type = NUMBER;
-      sindex++;
-    ;}
+              sprintf( parse[sindex].idop, "%s", yylval.sptr);
+              parse[sindex].type = NUMBER;
+              sindex++;
+            ;}
     break;
 
 
 
 /* Line 1455 of yacc.c  */
-#line 2211 "assembler.tab.c"
+#line 2281 "cpu.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -2419,35 +2489,563 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 588 "assembler.y"
+#line 711 "cpu.y"
 
-
-main(int argc, char **argv) {
-  
-  if(argc != 2) { 
-    fprintf(stderr, "usage: assembler <input> \n");
-    fprintf(stderr, "output: <input>.cpu \n");
-    exit(0);
-  }
-
-  // global file pointer
-  yyin = fopen(argv[1], "r" );
-
-  // bison function
-  yyparse();
-  
-  exportMemory(argv[1]);
-
-  fclose(yyin);
-  
-  return 0;
-}
 
 void yyerror(char *s) {
   extern unsigned int linenumber;
   fprintf(stderr, "%s\n", s);
   fprintf(stderr, "line %d:  %s\n", linenumber+1, yytext);
   return;
+}
+
+
+main(int argc, char **argv) {
+      
+  if(argc != 2) { 
+    fprintf(stderr, "usage: cpu <input> \n");
+    exit(0);
+  }
+
+  // global file pointer
+  fileIn = fopen(argv[1], "r" );
+
+  // read file into memory
+  
+  fclose(fileIn);
+
+  showjsym(); 
+  executeit();
+
+  return 0;
+}
+
+
+executeit()
+{
+  int cur_proc,p0=0, msg=-1,m;
+  int stack[MAXPRO][STACKSIZE];
+  int sp[MAXPRO];
+  int next_instruct[MAXPRO];
+  int proc_complete[MAXPRO];
+  int reg[MAXPRO][REGISTERSIZE];
+  int locked=UNLOCKED;
+
+  memset(stack,0,MAXPRO*STACKSIZE*sizeof(int));
+  memset(sp,-1,MAXPRO*sizeof(int));
+ // memset(next_instruct,0,MAXPRO*sizeof(int));
+  memset(proc_complete,0,MAXPRO*sizeof(int));
+  memset(reg,0,10*MAXPRO*sizeof(int));
+  srand( time(NULL) );
+
+  next_instruct[0]=10;
+  next_instruct[1]=10;
+  next_instruct[2]=10;
+  next_instruct[3]=10;
+  next_instruct[4]=10;
+  next_instruct[5]=10;
+
+  /*for(i=0;i<pid;i++)
+   for(m=0;m<STACKSIZE;m++)
+      printf("STACK %d: %d\n",i,stack[i][m]);*/
+
+/*while(1) //used for testing a single process
+{
+   cur_proc=2;
+   if(next_instruct[cur_proc]<endprog[cur_proc])
+   {
+       msg=exe(stack,sp,reg,next_instruct,next_instruct,cur_proc);
+       //increment next_instruction
+      next_instruct[cur_proc]++;
+      printf("loop: %d\n",next_instruct[cur_proc]);
+   }
+   else break;
+}*/
+
+   while(1)
+   {
+cont:
+      if(locked==UNLOCKED)
+       {// printf("pid=%d\n", pid); //keyhit(8999);
+           cur_proc = (pid==1)? 0:(rand()%(pid-1))+1;
+       }
+
+      if(proc_complete[cur_proc] == 1)
+       {
+         printf("----------------------------cur_proc: %d\n",cur_proc);
+             goto checkdone;
+       }
+
+      if(next_instruct[cur_proc]<endprog[cur_proc])
+      {
+         msg=exe(stack,sp,reg,next_instruct,next_instruct,cur_proc);
+         if(msg==ENDPROCESS)
+            proc_complete[cur_proc]=1;
+
+    //    printf("%d %d\n",cur_proc,next_instruct[cur_proc]+1);
+         //increment next_instruction
+         next_instruct[cur_proc]++;
+         if(msg==UNLOCKED)
+         {
+//printf("unlock\n");
+            locked=UNLOCKED;
+         }
+         else if(msg==LOCKED || locked==LOCKED)
+         {//printf("locked\n");
+            locked=LOCKED;
+         }
+         
+
+        //run p0 in its entirety after a gmem write
+         //cur_proc=0;
+         while(msg==p0WRITE || p0running)
+         {
+            p0running=1; cur_proc=0;
+//printf("p0 started   PC=%d\n", next_instruct[cur_proc]);
+            msg=exe(stack,sp,reg,next_instruct,next_instruct,p0);
+//   printf("p1, nextPC=%d\n" , next_instruct[1]);
+
+            next_instruct[cur_proc]++;
+            if(p0running == 0)
+            {  msg=NORMAL;
+               next_instruct[p0]=10;
+               break;
+            }
+//printf("branch %d \n",(next_instruct[cur_proc]<endprog[cur_proc]));
+            if( next_instruct[p0]>=endprog[p0])
+            {  p0running=0;
+               sp[p0]=0;
+               next_instruct[p0]=10;
+               msg=NORMAL;
+               break;
+            }
+         }
+         continue;
+      }
+      else
+      {
+           //printf("Process %d complete\n",cur_proc);
+           proc_complete[cur_proc]=1;
+      }
+      //check if all processes are done
+checkdone:
+    for(cur_proc=1;cur_proc<pid;cur_proc++)
+      if(proc_complete[cur_proc]==0)
+         goto cont;
+     break;
+   }
+  // print_stack(stack,sp); stack should be all 0 and sp at -1
+   print_gmem();
+   print_register(reg);
+}
+
+
+int exe(int stack[][STACKSIZE],int sp[],int reg[][REGISTERSIZE], int next_instruct[],int next_inst[], int cur_proc)
+{
+   int i,k, m; //delete these after all accesses renamed, except i
+   int tmp,tmp1, tmp2;
+   char name[11];
+
+   i=next_inst[cur_proc];
+//printf("ENTER exe    ---  (pid=%d) PC = %d\n", cur_proc, i);
+//printf("Instruction = %d\n", mem[cur_proc][i] );
+//gmem[6]=101;
+
+/** the following 3 lines are for debugging user program too **/
+#if 0
+   print_gmem();
+   print_register(reg);
+   keyhit(343);
+#endif
+
+   switch (mem[cur_proc][i] )
+   {
+     /** OPEN, READ, CLOSE, WRITE, SEEK ::  OS services **/
+      case OPEN :
+                  tmp = peek(stack,cur_proc,sp, 0) ;
+                  printf("OPEN offset=  0,  data=%d\n", tmp); 
+                  tmp1 = peek(stack,cur_proc,sp, -1) ;
+                  printf("OPEN offset= -1,  data=%d\n", tmp1); 
+
+                 { int i;
+                 i=0;
+                 while ( name[i] =  mem[cur_proc][tmp1+i++] );
+    printf("filename passed = %s\n", name);
+    printf("OS service call  --- <OPEN>  return file descriptor!(987 is fake)\n");
+
+                 push(stack,cur_proc,sp, 987, 11); // dummy fd =987 
+                 }
+ //keyhit(91);
+                break;
+      case READ :
+                  tmp = peek(stack,cur_proc,sp, 0) ;
+                  printf("READ,  file descriptor=%d\n", tmp); 
+    printf("OS service call  --- <READ> return int read (777 is fake)\n");
+                 push(stack,cur_proc,sp, 777, 13); // dummy fd =777 
+
+                break;
+
+      case CLOSE :
+                  tmp = peek(stack,cur_proc,sp, 0) ;
+                  printf("CLOSE,  file descriptor=%d\n", tmp); 
+    printf("OS service call  --- <CLOSE> close file\n");
+
+                break;
+      case WRITE :
+                  tmp = peek(stack,cur_proc,sp, 0) ;
+                  printf("WRITE offset=  0,  data=%d\n", tmp); 
+                  tmp1 = peek(stack,cur_proc,sp, -1) ;
+                  printf("WRITE offset= -1,  fd =%d\n", tmp1); 
+    printf("OS service call  --- <WRITE> \n");
+    /* tmp = data ; tmp1 = file descriptor */
+    
+                break;
+
+      case SEEK :
+                  tmp = peek(stack,cur_proc,sp, 0) ;
+                  printf("SEEK offset=  0,  data=%d\n", tmp); 
+                  tmp1 = peek(stack,cur_proc,sp, -1) ;
+                  printf("SEEK offset= -1,  fd =%d\n", tmp1); 
+    printf("OS service call  --- <SEEK> \n");
+    /* tmp = seek ofset ; tmp1 = file descriptor */
+    
+                break;
+
+
+
+      case POPD : tmp = mem[cur_proc][i+1];
+                  tmp1 = pop(stack,cur_proc,sp, 10) ;
+//printf("POPD: popd %d into %d\n", tmp1, tmp);
+                  if(tmp<230)
+                  {   gmem[tmp]=tmp1;
+                  }
+                  else
+                  {  tmp = tmp-230;
+                     reg[cur_proc][tmp]= tmp1;
+                  }
+                  next_inst[cur_proc]++;
+                  break;
+
+      case POP : 
+                  tmp1 = pop(stack,cur_proc,sp, 12) ;
+                  break;
+
+      case LD : tmp = pop(stack,cur_proc,sp, 14) ;
+                tmp1 = gmem[tmp];
+//printf("%04d LD %d %d\n",i,tmp1,tmp);
+                push(stack,cur_proc,sp,tmp1, 15);
+                break;
+
+      case LA : tmp = mem[cur_proc][i+1];//load address of start of array
+//printf("LA1 %d\n",tmp);
+                push(stack,cur_proc,sp,tmp, 17);
+//printf("%04d LA %d %d\n",i,tmp);
+                  next_inst[cur_proc]++;
+                break; 
+      case LOAD : tmp = mem[cur_proc][i+1];
+//printf("load 1 %d\n",tmp);
+//printf("load 1 mem[%d][%d]\n",cur_proc, i+1);
+//printf("stack  0= %d\n", peek(stack,cur_proc,sp, 0)) ;
+//printf("stack -1= %d\n", peek(stack,cur_proc,sp, -1)) ;
+                  if(tmp<230)
+                     tmp1 = gmem[tmp];
+                  else
+                  {
+                     tmp = tmp-230;
+                     tmp1 = reg[cur_proc][tmp];
+                  }
+                  push(stack,cur_proc,sp,tmp1, 19);
+//printf("%04d load tmp %d %d %d\n",i+1,tmp,tmp1,cur_proc);
+//printf("stack  0= %d\n", peek(stack,cur_proc,sp, 0)) ;
+//printf("stack -1= %d\n", peek(stack,cur_proc,sp, -1)) ;
+                  next_inst[cur_proc]++;
+                  break;
+      case LOADI : push(stack,cur_proc,sp,mem[cur_proc][i+1], 21); 
+//printf("%04d loadi %d\n",i,stack[cur_proc][sp[cur_proc]] );
+                  next_inst[cur_proc]++;
+                   break;
+      case ADD: tmp1 = pop(stack,cur_proc,sp, 16);
+                tmp2 = pop(stack,cur_proc,sp, 18);
+                tmp1 += tmp2;
+                push(stack,cur_proc,sp,tmp1, 23);
+// printf("%04d:  ADD %d\n",i, tmp1); 
+                break;
+      case SUB : tmp1 = pop(stack,cur_proc,sp, 20);
+                 tmp2 = pop(stack,cur_proc,sp, 22);
+                 tmp1 = tmp2-tmp1;
+                 push(stack,cur_proc,sp,tmp1, 25);
+// printf("%04d:  SUB\n", i); 
+                 break;
+      case MUL: tmp1 = pop(stack,cur_proc,sp, 24);
+                tmp2 = pop(stack,cur_proc,sp, 26);
+                tmp1 *= tmp2;
+                push(stack,cur_proc,sp,tmp1, 27);
+   //  printf("%04d:  MUL\n", i); 
+                break;
+      case DIV : tmp1 = pop(stack,cur_proc,sp, 28);
+                 tmp2 = pop(stack,cur_proc,sp, 30);
+                 tmp1 /= tmp2;
+                 push(stack,cur_proc,sp,tmp1, 29);
+   //  printf("%04d:  DIV\n", i); 
+                 break;
+      case END: printf("Process %d completed normally\n", cur_proc);
+                p0running=0;
+                return ENDPROCESS;
+     
+case ENDP: printf("ENDP\n");
+     break;
+
+      case AND: tmp1 = pop(stack,cur_proc,sp, 32);
+                tmp2 = pop(stack,cur_proc,sp, 34);
+                tmp1 = tmp1 && tmp2;
+                push(stack,cur_proc,sp,tmp1, 31);
+ //  printf("%04d:  AND\n", i); 
+                break;
+      case OR: tmp1 = pop(stack,cur_proc,sp, 36);
+               tmp2 = pop(stack,cur_proc,sp, 38);
+               tmp1 = tmp1 || tmp2;
+               push(stack,cur_proc,sp,tmp1, 33);
+ //  printf("%04d:  OR\n", i); 
+               break;
+      case NOT: tmp1 = pop(stack,cur_proc,sp, 40);
+                tmp1 = !tmp1;
+                push(stack,cur_proc,sp,tmp1, 35);
+ //  printf("%04d:  NOT\n", i); 
+                break; 
+      case LE_OP: tmp1 = pop(stack,cur_proc,sp, 42);
+                  tmp2 = pop(stack,cur_proc,sp, 44);
+                  tmp = tmp1 <= tmp2;
+                  push(stack,cur_proc,sp,tmp, 37);
+ //        printf("%04d:  LE_OP %d\n", i, tmp); 
+                  break; 
+      case GE_OP: tmp1 = pop(stack,cur_proc,sp, 46);
+                  tmp2 = pop(stack,cur_proc,sp, 48);
+                  tmp = tmp1 >= tmp2;
+                  push(stack,cur_proc,sp,tmp, 39);
+//    printf("%04d:  GE_OP%d\n", i,tmp); 
+                  break; 
+      case LT_OP:tmp1 = pop(stack,cur_proc,sp, 50);
+                 tmp2 = pop(stack,cur_proc,sp, 52);
+                 tmp = tmp2 < tmp1;
+                 push(stack,cur_proc,sp,tmp, 41);
+//    printf("%04d:  LT_OP %d %d %d\n", i,tmp,tmp1,tmp2); 
+                 break;
+      case GT_OP: tmp1 = pop(stack,cur_proc,sp, 54);
+                  tmp2 = pop(stack,cur_proc,sp, 56);
+                  tmp = tmp1 > tmp2;
+                  push(stack,cur_proc,sp,tmp, 43);
+//    printf("%04d:  GT_OP %d SP %d %d\n", i,tmp, sp[cur_proc],GT_OP); 
+                  break;
+      case EQ_OP: tmp1 = pop(stack,cur_proc,sp, 58);
+//printf("step 2 %d\n",sp[cur_proc]);
+                  tmp2 = pop(stack,cur_proc,sp, 60);
+//printf("EQ? %d %d\n", tmp1, tmp2);
+                  tmp = tmp1 == tmp2;
+                  push(stack,cur_proc,sp,tmp, 45);
+//     printf("%04d:  EQ_OP %d\n", i, tmp); 
+                  break;
+      case NE_OP: tmp1 = pop(stack,cur_proc,sp, 62);
+                  tmp2 = pop(stack,cur_proc,sp, 64);
+                  tmp = tmp1 != tmp2;
+                  push(stack,cur_proc,sp,tmp, 47);
+//     printf("%04d:  NE_OP\n", i); 
+                  break; 
+      case STOP : printf("STOP called by proccess %d, hit any key to continue\n", cur_proc);
+                  scanf("%d",&tmp2);
+                  break;
+      case STOR: tmp = pop(stack,cur_proc,sp, 68);
+                 tmp1 = mem[cur_proc][i+1];
+                 if(tmp1<230)
+                 {
+                     gmem[tmp1]=tmp;
+                     printf("Process %d wrote to global mem in index %d, %d\n",cur_proc,tmp1,gmem[tmp1]);
+//printf("returning p0WRITE\n"); keyhit(99);
+                  next_inst[cur_proc]++;
+                     return p0WRITE;
+                 } 
+                 else
+                 {    reg[cur_proc][tmp1-230]=tmp;
+                 
+                  next_inst[cur_proc]++;
+                 }
+                 break;
+      case ST : tmp = pop(stack,cur_proc,sp, 70);//does ST ever need to store in a register?
+//printf("%d\n",tmp);
+                tmp1 = pop(stack,cur_proc,sp, 72);
+//printf("%d\n",tmp1);
+                gmem[tmp]=tmp1;
+               printf("process %d wrote to global mem in index %d, %d\n",cur_proc,tmp,gmem[tmp]);
+                return p0WRITE;
+      case LOCK : printf("LOCK called by process %d\n",cur_proc); 
+                  return LOCKED;
+      case UNLOCK : printf("UNLOCK called\n");
+                    return UNLOCKED;
+      case HALT : printf("HALT called by process %d\n\n",cur_proc);
+                  print_gmem();
+                  print_register(reg);
+
+                  exit(0); 
+      case JFALSE : tmp=pop(stack, cur_proc,sp, 74);
+                    tmp2=mem[cur_proc][i+1];
+//printf("jfalse %d %d \n", tmp,tmp2-1);
+                    if(tmp==0)
+                        next_instruct[cur_proc]=tmp2-1;//sub one for PC in executeit()
+                    else next_inst[cur_proc]++;
+                    break;
+      case JMP: tmp=mem[cur_proc][i+1];
+                next_instruct[cur_proc]=tmp-1;//sub one for PC in executeit() 
+ //    printf("%04d:  JMP\t %d\n", i, next_instruct[cur_proc]); 
+                 // next_inst[cur_proc]++;
+                break;
+default:
+     printf("illegal instruction mem[%d][%d]\n",cur_proc,i);
+     keyhit(127);
+     printf("(%04d:   %d)\n", i, mem[cur_proc][i]);  
+     break;
+
+   }
+//printf("returning NORMAL\n"); // keyhit(9999);
+   return NORMAL;
+}
+
+int peek(int stack[][STACKSIZE], int proc_id, int sp[], int offset)
+{
+   int val= stack[proc_id][sp[proc_id] + offset];
+printf("peek : %d\n", val);
+   return val;
+}
+
+int pop(int stack[][STACKSIZE], int proc_id, int sp[], int calledfrom)
+{
+   int val= stack[proc_id][sp[proc_id]];
+   sp[proc_id]--;
+   if(sp[proc_id]<-1)
+   {
+      printf("Stack Underflow: process %d %d\n",proc_id,sp[proc_id]);
+      printf("Called from  %d\n", calledfrom);
+
+      exit(-1);
+   }
+/* show stack 
+   { int i, j;
+
+     printf("pid=%d: POP Called from  %d\n", proc_id,  calledfrom);
+     printf("tos = %d\n", sp[proc_id]);
+     for(i=0; i<=sp[proc_id]; i++)
+      printf("(%d) %d\n", i, stack[proc_id][i ]);
+     printf("returning %d\n", val);
+keyhit(10);
+   }
+*/
+   return val;
+}
+
+void push(int stack[][STACKSIZE], int proc_id, int sp[],int data, int calledfrom)
+{
+   sp[proc_id]++;
+
+   if(sp[proc_id]>STACKSIZE)
+   {
+      printf("Stack Overflow: process %d %d %d\n",proc_id,sp[proc_id],data);
+      printf("PUSH Called from  %d\n", calledfrom);
+      exit(-1);
+   }
+   stack[proc_id][sp[proc_id]]=data;
+
+/* show stack 
+   { int i, j;
+     printf("pid=%d: PUSH Called from  %d\n", proc_id,  calledfrom);
+     printf("tos = %d\n", sp[proc_id]);
+     for(i=0; i<=sp[proc_id]; i++)
+      printf("(%d) %d\n", i, stack[proc_id][i]);
+keyhit(11);
+   }
+*/
+}
+
+
+//debug routines
+void print_stack(int stack[][STACKSIZE],int sp[])
+{
+   int i,j;
+   for(i=0;i<pid;i++)
+   {
+      printf("Stack contents for process %d\n", i);
+      for(j=0;j<STACKSIZE;j++)
+         printf("%d\n",stack[i][j]);
+      printf("SP at %d\n\n",sp[i]);
+   }
+}
+
+void print_gmem()
+{
+   int i;
+   printf("Global memory: size %d\n",MAXGMEM);
+   for(i=0;i<MAXGMEM;i++)
+      printf("%d  ", gmem[i]);
+   printf("\n");
+}
+
+void print_register(int reg[][REGISTERSIZE])
+{
+   int i,j;
+   printf("Register data\n");
+   for(i=0;i<pid;i++)
+   {
+      printf("Process %d: ",i);
+      for(j=0;j<REGISTERSIZE;j++)
+         printf("%d  ",reg[i][j]);
+      printf("\n");
+
+   }
+}
+
+// Keep?
+
+showjsym() { 
+  int i, j;
+  
+  printf("SHOWSYM %d\n", execute);
+  
+  for(i = 0; i < locex; i++) {
+    if(execute==0) 
+      printf("%s  %d\n", locjsym[i].label, locjsym[i].address );
+  }
+
+  printf("SHOWSYM refex %d\n", refex);
+  
+  for(i = 0; i < refex; i++) {
+    if(execute==0) 
+      printf("%s  %d", refjsym[i].label, refjsym[i].address );
+   
+    if(execute==0) 
+      printf(" --  %d\n", mem[pid][ refjsym[i].address] );
+  }
+  
+  /* search refjsym in locjsym, fill with locjsym.address */  
+  for(i = 0; i < refex; i++) {
+    printf("%s  %d", refjsym[i].label, refjsym[i].address );
+    printf(" --  %d\n", mem[pid][ refjsym[i].address] );
+    
+    /* search refjsym in locjsym, fill with locjsym.address */  
+    if(mem[pid][ refjsym[i].address] != -1)
+      if(execute==0)   
+        printf("jump lable wrong %s\n", refjsym[i].label);
+    
+    for(j = 0; j < locex; j++) {
+
+      if(strcmp(locjsym[j].label, refjsym[i].label) == 0) {
+        mem[pid][ refjsym[i].address] = locjsym[j].address; 
+        break;
+      }
+    }
+    
+    if(j >= locex)
+     if(execute==0) 
+       fprintf(stderr,"lable not found: %s\n", refjsym[i].label);
+  }
+  
+  printf("DONE showsym\n");  
 }
 
 showsymtable() {
@@ -2488,269 +3086,4 @@ int searchvtable(char *str, int *j, int from) {
   printf("---------search vtable for %s ended\n", str);
   printf("----------returning %d   and  j= %d\n", vtable[i].address, *j);
   return( vtable[i].address);
-}
-
-showjsym() { 
-  int i, j;
-  
-  printf("SHOWSYM %d\n", execute);
-  
-  for (i = 0; i < locex; i++) {
-    if (execute == 0) 
-      printf("%s  %d\n", locjsym[i].label, locjsym[i].address );
-  }
-
-  printf("SHOWSYM refex %d\n", refex);
-  
-  for (i = 0; i < refex; i++) {
-    if (execute == 0) 
-      printf("%s  %d", refjsym[i].label, refjsym[i].address );
-   
-    if (execute == 0) 
-      printf(" --  %d\n", mem[pid][ refjsym[i].address] );
-  }
-  
-  /* search refjsym in locjsym, fill with locjsym.address */  
-  for (i = 0; i < refex; i++) {
-    printf("%s  %d", refjsym[i].label, refjsym[i].address );
-    printf(" --  %d\n", mem[pid][ refjsym[i].address] );
-    
-    /* search refjsym in locjsym, fill with locjsym.address */  
-    if(mem[pid][ refjsym[i].address] != -1)
-      if(execute==0)   
-        printf("jump lable wrong %s\n", refjsym[i].label);
-    
-    for(j = 0; j < locex; j++) {
-
-      if(strcmp(locjsym[j].label, refjsym[i].label) == 0) {
-        mem[pid][ refjsym[i].address] = locjsym[j].address; 
-        break;
-      }
-    }
-    
-    if(j >= locex)
-     if(execute==0) 
-       fprintf(stderr,"lable not found: %s\n", refjsym[i].label);
-  }
-  
-  printf("DONE showsym\n");  
-}
-
-
-int searchsym( char *str, int j) {
-  int i;
-
-  for(i = 0; i < vtablex; i++) {
-    if(vtable[i].address == j ) { 
-      sscanf(vtable[i].varname, "%s", str);
-      return; 
-    }
-  }
-  
-  fprintf(stderr, " symbol %s not found, error\n", str);
-  fprintf(stderr, " this may be initdata label.\n");
-
-  printf("---------search vtable for %s ended\n", str);
-}
-
-
-exportMemory(char* filename) {
-  int i;
-  int j;
-  
-  strcat(filename, ".cpu");
-  
-  FILE *fd;
-  fd = fopen(filename, "w");
-  
-  
-  printf("************************************\n");
-  printf("  Exporting Memory: %s\n", filename);
-  printf("************************************\n");
-      
-  fprintf(fd, "processes: %d \n", pid);
-  for (i = 0; i < pid; i++) {
-    fprintf(fd, "  pid: %d \n", i);
-    fprintf(fd, "  end: %d \n    ", endprog[i]);
-    for (j = 0; j <= endprog[i]; j++)
-      fprintf(fd, "%d ", mem[i][j]);
-    fprintf(fd, "\n");
-  }
-  
-}
-
-
-// change printf to fprintf to print to file
-showmem() { 
-  int i;
-  int k; 
-  char name[11];
-  int progid;
-  
-  for (k = 0; k < pid; k++) {
-    printf("############### pid %d ############\n", k);
-    printf("############### endprog %d ############\n", endprog[k]);
-  
-    // endprog[] contains last instruction addrs of proc
-    for (i = 0; i < endprog[k]; i++) { 
-      switch (mem[k][i] ) {
-
-        case POPD:
-          if (mem[k][i+1]<230) { 
-            searchsym(name, mem[k][i + 1]);
-            printf("%04d:  POPD\t %d  (%s)\n", i, mem[k][i+1], name);
-          } else
-            printf("%04d:  POPD\t %d\n", i, mem[k][i+1]); 
-          
-          i++;
-          break;
-
-        case POP :
-          printf("%04d:  POP\n", i); 
-          break;
-
-        case OPEN :
-          printf("%04d:  OPEN\n", i); 
-          break;
-
-        case READ :
-          printf("%04d:  READ\n", i); 
-          break;
-
-        case WRITE :
-          printf("%04d:  WRITE\n", i); 
-          break;
-
-        case SEEK :
-          printf("%04d:  SEEK\n", i); 
-          break;
-          
-        case CLOSE :
-          printf("%04d:  CLOSE\n", i); 
-          break;
-
-        case LD :
-          printf("%04d:  LD\n", i); 
-          break;
-
-        case LA :
-          searchsym(name, mem[k][i+1]);
-          printf("%04d:  LA\t %d (%s)\n", i, mem[k][i+1], name); i++;
-          break;
-
-        case LOAD :
-          if(mem[k][i+1]<230) { 
-            searchsym(name, mem[k][i+1]);
-            printf("%04d:  LOAD\t %d  (%s)\n", i, mem[k][i+1], name);
-          } else
-            printf("%04d:  LOAD\t %d\n", i, mem[k][i+1]); 
-          i++;
-          break;
-
-        case LOADI :
-          printf("%04d:  LOADI\t %d\n", i, mem[k][i+1]); i++;
-          break;
-
-        case ADD:
-          printf("%04d:  ADD\n", i); 
-          break;
-
-        case SUB :
-          printf("%04d:  SUB\n", i); 
-          break;
-
-        case MUL :
-          printf("%04d:  MUL\n", i); 
-          break;
-
-        case DIV :
-          printf("%04d:  DIV\n", i); 
-          break;
-          case END:
-          printf("%04d:  END\n", i); 
-          break;
-
-        case ENDP:
-          printf("%04d:  ENDP\n", i); 
-          break;
-
-        case AND:
-          printf("%04d:  AND\n", i); 
-          break;
-
-        case OR:
-          printf("%04d:  OR\n", i); 
-          break;
-
-        case NOT:
-          printf("%04d:  NOT\n", i); 
-          break;
-
-        case LE_OP:
-          printf("%04d:  LE_OP\n", i); 
-          break;
-          case GE_OP:
-          printf("%04d:  GE_OP\n", i); 
-          break;
-
-        case LT_OP:
-          printf("%04d:  LT_OP\n", i); 
-          break;
-          case GT_OP:
-          printf("%04d:  GT_OP\n", i); 
-          break;
-
-        case EQ_OP:
-          printf("%04d:  EQ_OP\n", i); 
-          break;
-
-        case NE_OP:
-          printf("%04d:  NE_OP\n", i); 
-          break;
-
-        case STOP :
-          printf("%04d:  STOP\n", i); 
-          break;
-
-        case STOR:
-          if(mem[k][i+1]<230) { 
-            searchsym(name, mem[k][i+1]);
-            printf("%04d:  STOR\t %d  (%s)\n", i, mem[k][i+1], name);
-          } else
-            printf("%04d:  STOR\t %d\n", i, mem[k][i+1]); 
-          
-          i++;
-          break;
-
-        case ST :
-          printf("%04d:  ST\n", i); 
-          break;
-
-        case LOCK :
-          printf("%04d:  LOCK\n", i); 
-          break;
-
-        case UNLOCK :
-          printf("%04d:  UNLOCK\n", i); 
-          break;
-
-        case HALT :
-          printf("%04d:  HALT\n", i); 
-          break;
-
-        case JFALSE :
-          printf("%04d:  JFALSE\t %d\n",  i, mem[k][i+1]); i++; 
-          break;
-
-        case JMP: 
-          printf("%04d:  JMP\t %d\n", i, mem[k][i+1]); i++; 
-          break;
-
-        default:
-          printf("(%04d:   %d)\n", i, mem[k][i]);  
-          break;
-      }
-    }
-  } // end of printing each proc memory
-
 }

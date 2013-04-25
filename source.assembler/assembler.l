@@ -1,8 +1,9 @@
 %{
 #include <math.h>
-#include "a5.tab.h"
-typedef struct
-{ char idop[11];
+#include "assembler.tab.h"
+
+typedef struct { 
+  char idop[11];
   int type;
 } PARSE;
 
