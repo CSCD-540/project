@@ -1,0 +1,13 @@
+x,y, arry[3], q[3];
+
+
+process p0
+{ x=1;
+}
+
+process p1
+{  r2=0;
+   arry[0]=11;
+   r2=r2+1;
+   q[r2]=33;
+}

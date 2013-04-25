@@ -1,0 +1,17 @@
+x,y, arry[3], q[3];
+
+process p0
+{ r4=open("abc",  0);
+  seek(r4,8);
+  read(r4, r0);
+  write(r4, r0);
+  close(r4);
+}
+process p1
+{ r4=open("xyz",  0);
+  seek(r4,8);
+  read(r4, r0);
+  r3=open("ijklmn", 0);
+  write(r4, r0);
+  close(r4);
+}

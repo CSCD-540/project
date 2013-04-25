@@ -1,0 +1,45 @@
+.DATA
+x
+y
+arry,3
+q,3
+
+PROC   p0
+LOADI 1
+STOR x
+END
+
+PROC   p1
+LOADI 11
+LA   arry
+LOADI 0
+ADD
+ST
+LOADI 12
+LA   arry
+LOADI 1
+ADD
+ST
+LOADI 13
+LA   arry
+LOADI 2
+ADD
+ST
+LOADI 33
+LA   q
+LOADI 0
+ADD
+ST
+LOADI 34
+LA   q
+LOADI 1
+ADD
+ST
+LOADI 35
+LA   q
+LOADI 2
+ADD
+ST
+END
+
+.IDATA

@@ -1,0 +1,15 @@
+ x[6], y;
+
+process p0
+{
+  y=1;
+}
+
+process p1
+{
+  r0=0;
+  while(r0<6)
+  { x[r0]=r0;
+    r0=r0+1;
+  }
+}
