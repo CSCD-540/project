@@ -589,14 +589,14 @@ int showterm( int beg) {
 
 main(int argc, char **argv) {
   
-  if(argc != 2) { 
-    fprintf(stderr, "usage: assembler <input> \n");
-    fprintf(stderr, "output: <input>.cpu \n");
+  if(argc != 3) { 
+    fprintf(stderr, "usage: assembler <input> <output> \n");
+    fprintf(stderr, "output: <output>.cpu \n");
     exit(0);
   }
 
   // global file pointer
-  yyin = fopen(argv[1], "r" );
+  yyin = fopen(argv[2], "r" );
 
   // bison function
   yyparse();

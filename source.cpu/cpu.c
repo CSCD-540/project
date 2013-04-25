@@ -55,8 +55,6 @@ typedef struct {
 
 PARSE parse[100];
 
-FILE  *fileIn;
-FILE  *fileOut;
 int   yy_flex_debug;
 int   execute;
 
@@ -553,20 +551,27 @@ void print_register(int reg[][REGISTERSIZE]) {
   }
 }
 
+void importMemory(char* filename) {
+  int i;
+  int j;
+  FILE* fd;
+  
+  fd = fopen(filename, "r");
+  
+  
+  
+  fclose(fd);
+}
+
 main(int argc, char **argv) {      
   if(argc != 2) { 
     fprintf(stderr, "usage: cpu <input> \n");
     exit(0);
   }
 
-  // global file pointer
-  fileIn = fopen(argv[1], "r" );
-
   // read file into memory
+  importMemory(argv[1]);
   
-  fclose(fileIn);
-
-  showjsym(); 
   executeit();
 
   return 0;
