@@ -557,7 +557,7 @@ void importMemory(char* filename) {
   FILE* fd;
   
   fd = fopen(filename, "r");
-  
+  fgets()
   
   
   fclose(fd);

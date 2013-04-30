@@ -1,0 +1,19 @@
+CSCD 540 - Advanced Operating Systems
+CPU Implementation
+
+Andrew Canfield
+Eric Powell
+Eric Nelson
+Jared
+
+Structs:
+  inode
+    fid
+    filename
+    length
+
+Interfaces:
+  filesystem
+    inode[] list()
+    int[] get(fid, offset, length)
+    inode store(int[])
