@@ -8,6 +8,7 @@ int lastFree;//tracks last free position node
 int lastFill;//tracks last filled position node
 int lastFid;//tracks last file pointer assigned
 int end;//tracks end of meta data
+int waste;//tracks wasted space, ie space that is too small for header data, this will be useful for determining when to defragment
 
 /**
  * Description of structure for record
@@ -17,17 +18,19 @@ int end;//tracks end of meta data
  *  start of record->
  * 
  * Description of structure of meta node
- * +---------------------------------------------------------------------------------------------------------------------------+
- * |next node|record location(1)|fid(1)|next 0 if none(1)|prev 0 if none(1)|last fill loc(1)|last free loc(1)|lastFid(1)|end(1)|
- * +---------------------------------------------------------------------------------------------------------------------------+
- * 					                 <-stat of meta node
+ * +-------------------------------------------------------------------------------------------------------------------------------------+
+ * |next node|record location(1)|data(1)|next 0 if none(1)|prev 0 if none(1)|last fill loc(1)|last free loc(1)|lastFid(1)|end(1)|waste(1)|
+ * +-------------------------------------------------------------------------------------------------------------------------------------+
+ * 				 	                   <-stat of meta node
  * 
+ * Data can either be the fid in the case of a fillNode or length in the case of a FreeNode
+ * Fill nodes are files currently stored
+ * Free nodes are deleted files
  */
 
 /**
  * TODO
- * Store files
- * list files
+ * add support ot append to file
  */
 
 //run only once, ever. Sets up filesystem parameters
@@ -37,10 +40,12 @@ void firstRun(){
  lastFree=0;
  lastFill=0;
  end=0;
- filesystem[SIZE-1]=end;
- filesystem[SIZE-2]=lastFid;
- filesystem[SIZE-3]=lastFree;
- filesystem[SIZE-4]=lastFill;
+ waste=0;
+ filesystem[SIZE-1]=waste;
+ filesystem[SIZE-2]=end;
+ filesystem[SIZE-3]=lastFid;
+ filesystem[SIZE-4]=lastFree;
+ filesystem[SIZE-5]=lastFill;
 }
 
 /**
@@ -48,10 +53,11 @@ void firstRun(){
  * For now used at the beginning of store and list
  */
 void init(){
-  end=filesystem[SIZE-1];
-  lastFid=filesystem[SIZE-2];
-  lastFree=filesystem[SIZE-3];
-  lastFill=filesystem[SIZE-4];
+  waste=filesystem[SIZE-1];
+  end=filesystem[SIZE-2];
+  lastFid=filesystem[SIZE-3];
+  lastFree=filesystem[SIZE-4];
+  lastFill=filesystem[SIZE-5];
 }
 
 /**
@@ -60,7 +66,6 @@ void init(){
  * Second version: Check to see if contigous space available from previously deleted files, then add to end if not, this requires delete to be implemented
  * Third version: Second version with additional check to see if non-contigous space available before adding to end. this requires delete to be implemented
  * Fourth version: defragmenter. This will need to solve the problem of small fragments smaller then the header size of a record
- * **note**:  
  */
 void store(int len, int* data){ 
   int prev,loc,i;
@@ -69,15 +74,15 @@ void store(int len, int* data){
   
   //fill in meta info first
   if(!lastFill){
-    lastFill=SIZE-5;
+    lastFill=SIZE-6;
     filesystem[lastFill]=0;//no prev
     filesystem[lastFill-1]=0;//no next
     filesystem[lastFill-2]=lastFid++;
     filesystem[lastFill-3]=0;//since no records start at beginning
     end=lastFill;//last record of meta data
-    filesystem[SIZE-1]=end;
-    filesystem[SIZE-2]=lastFid;
-    filesystem[SIZE-3]=lastFill;
+    filesystem[SIZE-2]=end;
+    filesystem[SIZE-3]=lastFid;
+    filesystem[SIZE-5]=lastFill;
   }else{
     filesystem[lastFill-1]=end-4;//next of prev
     filesystem[end-4]=lastFill;//prev
@@ -90,9 +95,9 @@ void store(int len, int* data){
     loc=filesystem[prev-3];//location of prev data
     filesystem[lastFill-3]=filesystem[loc+3]+4;//size of data plus 4 (for header info)
  
-    filesystem[SIZE-1]=end;
-    filesystem[SIZE-2]=lastFid;
-    filesystem[SIZE-3]=lastFill;
+    filesystem[SIZE-2]=end;
+    filesystem[SIZE-3]=lastFid;
+    filesystem[SIZE-5]=lastFill;
   }
     
   //add to beginning of filesystem
@@ -107,15 +112,71 @@ void store(int len, int* data){
     filesystem[loc+4+i]=data[i];
   }
   
+}
+
+/**
+ * This will add a node to the free list. 
+ * 
+ * Since a free node is taken from a fill node, 'end' should not change
+ */
+void addFree(int index){
+ 
+  int loc;
   
+  init();
+  
+  if(!lastFree){
+    filesystem[index]=0;//no prev
+    filesystem[index-1]=0;//no next
+  }else{
+    filesystem[lastFree-1]=index;//next of prev
+    filesystem[index]=lastFree;//prev
+    filesystem[index-1]=0;//next
+  }
+   
+    lastFree=index;
+    loc=filesystem[lastFree-3];
+    filesystem[lastFree-2]=filesystem[loc+3];//size of available free space (minus header info) 
+    filesystem[SIZE-4]=lastFree; 
 }
 
 /**
  * Removes an record with fid from filesystem
- * Version1: Removes it. That's it
- * Version2: Removes it then makes record of it in LastFree
+ * Version1: Removes it then makes record of it in LastFree **Done**
  */
 void delete(int fid){
+  //in case not initialized already
+  init();
+ 
+  int next=0;
+  int prev=0;
+  int hasPrev=lastFill;
+  
+  while(hasPrev){
+    //check for match
+    if(filesystem[hasPrev-2]==fid){
+
+      //make new lastFree
+      addFree(hasPrev);
+      
+      //if lastFill is being removed, set lastFill to prev
+      if(lastFill==lastFree)
+	lastFill=filesystem[lastFill];
+      
+      next=filesystem[hasPrev-1];//get next
+      prev=filesystem[hasPrev];//get prev
+      //if there is a next then give it location of new prev
+      if(next){
+	filesystem[next]=filesystem[prev];
+      }
+      //if there is a prev then give it location of new next
+      if(prev){
+	filesystem[prev]=filesystem[next];
+      }
+      break;
+    }
+    hasPrev=filesystem[hasPrev];
+  }
   
 }
 
@@ -154,6 +215,15 @@ void main(){
   store(2,b);
   store(3,c);
   store(4,d);
+  printf("Input test\n");
   list();
-  
+  delete(2);
+  printf("middle delete test\n");
+  list();
+  delete(1);
+  printf("start delete test\n");
+  list();
+  delete(4);
+  printf("end delete test\n");
+  list();  
 }
