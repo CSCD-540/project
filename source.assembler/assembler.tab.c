@@ -73,6 +73,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 char  *yytext;
 FILE  *yyin;
@@ -200,7 +201,7 @@ int showterm( int beg) {
 
 
 /* Line 189 of yacc.c  */
-#line 204 "assembler.tab.c"
+#line 205 "assembler.tab.c"
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
@@ -281,7 +282,7 @@ typedef union YYSTYPE
 {
 
 /* Line 214 of yacc.c  */
-#line 131 "assembler.y"
+#line 132 "assembler.y"
 
   int intval;
   char *sptr;
@@ -289,7 +290,7 @@ typedef union YYSTYPE
 
 
 /* Line 214 of yacc.c  */
-#line 293 "assembler.tab.c"
+#line 294 "assembler.tab.c"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -301,7 +302,7 @@ typedef union YYSTYPE
 
 
 /* Line 264 of yacc.c  */
-#line 305 "assembler.tab.c"
+#line 306 "assembler.tab.c"
 
 #ifdef short
 # undef short
@@ -605,12 +606,12 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   187,   187,   198,   199,   200,   203,   206,   211,   212,
-     215,   227,   256,   257,   260,   261,   264,   269,   270,   273,
-     276,   352,   363,   375,   376,   379,   393,   401,   422,   427,
-     432,   437,   442,   447,   460,   465,   474,   483,   488,   493,
-     498,   503,   517,   522,   527,   532,   537,   542,   547,   552,
-     557,   562,   567,   577,   582
+       0,   188,   188,   199,   200,   201,   204,   207,   212,   213,
+     216,   228,   257,   258,   261,   262,   265,   270,   271,   274,
+     277,   353,   364,   376,   377,   380,   394,   402,   423,   428,
+     433,   438,   443,   448,   461,   466,   475,   484,   489,   494,
+     499,   504,   518,   523,   528,   533,   538,   543,   548,   553,
+     558,   563,   568,   578,   583
 };
 #endif
 
@@ -1578,7 +1579,7 @@ yyreduce:
         case 2:
 
 /* Line 1455 of yacc.c  */
-#line 187 "assembler.y"
+#line 188 "assembler.y"
     { 
       int j,k;
       printf("END of ProgramA\n");
@@ -1593,28 +1594,28 @@ yyreduce:
   case 4:
 
 /* Line 1455 of yacc.c  */
-#line 199 "assembler.y"
+#line 200 "assembler.y"
     {; ;}
     break;
 
   case 5:
 
 /* Line 1455 of yacc.c  */
-#line 200 "assembler.y"
+#line 201 "assembler.y"
     {;;}
     break;
 
   case 6:
 
 /* Line 1455 of yacc.c  */
-#line 203 "assembler.y"
+#line 204 "assembler.y"
     {;;}
     break;
 
   case 7:
 
 /* Line 1455 of yacc.c  */
-#line 206 "assembler.y"
+#line 207 "assembler.y"
     { 
       sindex=0;
     ;}
@@ -1623,7 +1624,7 @@ yyreduce:
   case 10:
 
 /* Line 1455 of yacc.c  */
-#line 215 "assembler.y"
+#line 216 "assembler.y"
     { 
       int i = 0;
       strcpy(vtable[vtablex].varname, parse[i].idop);
@@ -1641,7 +1642,7 @@ yyreduce:
   case 11:
 
 /* Line 1455 of yacc.c  */
-#line 227 "assembler.y"
+#line 228 "assembler.y"
     { 
       int i,j;
 
@@ -1674,21 +1675,21 @@ yyreduce:
   case 14:
 
 /* Line 1455 of yacc.c  */
-#line 260 "assembler.y"
+#line 261 "assembler.y"
     {;}
     break;
 
   case 15:
 
 /* Line 1455 of yacc.c  */
-#line 261 "assembler.y"
+#line 262 "assembler.y"
     {;}
     break;
 
   case 16:
 
 /* Line 1455 of yacc.c  */
-#line 264 "assembler.y"
+#line 265 "assembler.y"
     { 
       sindex=0;
     ;}
@@ -1697,21 +1698,21 @@ yyreduce:
   case 18:
 
 /* Line 1455 of yacc.c  */
-#line 270 "assembler.y"
+#line 271 "assembler.y"
     {;}
     break;
 
   case 19:
 
 /* Line 1455 of yacc.c  */
-#line 273 "assembler.y"
+#line 274 "assembler.y"
     {;}
     break;
 
   case 20:
 
 /* Line 1455 of yacc.c  */
-#line 276 "assembler.y"
+#line 277 "assembler.y"
     { 
       int i, j, k;
       int ch; 
@@ -1791,7 +1792,7 @@ yyreduce:
   case 21:
 
 /* Line 1455 of yacc.c  */
-#line 352 "assembler.y"
+#line 353 "assembler.y"
     {
        mem[pid][memloc++]=END;
        sindex=0;
@@ -1806,7 +1807,7 @@ yyreduce:
   case 22:
 
 /* Line 1455 of yacc.c  */
-#line 363 "assembler.y"
+#line 364 "assembler.y"
     {
       showterm(0);
       sindex = 0; 
@@ -1822,7 +1823,7 @@ yyreduce:
   case 25:
 
 /* Line 1455 of yacc.c  */
-#line 379 "assembler.y"
+#line 380 "assembler.y"
     {
       int i, j;
       mem[pid][memloc++] = LOAD;
@@ -1842,7 +1843,7 @@ yyreduce:
   case 26:
 
 /* Line 1455 of yacc.c  */
-#line 393 "assembler.y"
+#line 394 "assembler.y"
     {
       int i;
       mem[pid][memloc++] = LOADI;
@@ -1856,7 +1857,7 @@ yyreduce:
   case 27:
 
 /* Line 1455 of yacc.c  */
-#line 401 "assembler.y"
+#line 402 "assembler.y"
     { 
       int i, j;
       mem[pid][memloc++] = LA;
@@ -1883,7 +1884,7 @@ yyreduce:
   case 28:
 
 /* Line 1455 of yacc.c  */
-#line 422 "assembler.y"
+#line 423 "assembler.y"
     {
       mem[pid][memloc++]=OPEN;
       showterm(0);
@@ -1894,7 +1895,7 @@ yyreduce:
   case 29:
 
 /* Line 1455 of yacc.c  */
-#line 427 "assembler.y"
+#line 428 "assembler.y"
     {
       mem[pid][memloc++]=READ;
       showterm(0);
@@ -1905,7 +1906,7 @@ yyreduce:
   case 30:
 
 /* Line 1455 of yacc.c  */
-#line 432 "assembler.y"
+#line 433 "assembler.y"
     {
       mem[pid][memloc++]=WRITE;
       showterm(0);
@@ -1916,7 +1917,7 @@ yyreduce:
   case 31:
 
 /* Line 1455 of yacc.c  */
-#line 437 "assembler.y"
+#line 438 "assembler.y"
     {
       mem[pid][memloc++]=CLOSE;
       showterm(0);
@@ -1927,7 +1928,7 @@ yyreduce:
   case 32:
 
 /* Line 1455 of yacc.c  */
-#line 442 "assembler.y"
+#line 443 "assembler.y"
     {
       mem[pid][memloc++]=SEEK;
       showterm(0);
@@ -1938,7 +1939,7 @@ yyreduce:
   case 33:
 
 /* Line 1455 of yacc.c  */
-#line 447 "assembler.y"
+#line 448 "assembler.y"
     {
       int i, j;
       showterm(0);
@@ -1957,7 +1958,7 @@ yyreduce:
   case 34:
 
 /* Line 1455 of yacc.c  */
-#line 460 "assembler.y"
+#line 461 "assembler.y"
     {
       mem[pid][memloc++]=POP;
       showterm(0);
@@ -1968,7 +1969,7 @@ yyreduce:
   case 35:
 
 /* Line 1455 of yacc.c  */
-#line 465 "assembler.y"
+#line 466 "assembler.y"
     { 
       mem[pid][memloc++]=JFALSE;
       mem[pid][memloc]=-1;
@@ -1983,7 +1984,7 @@ yyreduce:
   case 36:
 
 /* Line 1455 of yacc.c  */
-#line 474 "assembler.y"
+#line 475 "assembler.y"
     {
       mem[pid][memloc++] = JMP;
       mem[pid][memloc] = -1;
@@ -1998,7 +1999,7 @@ yyreduce:
   case 37:
 
 /* Line 1455 of yacc.c  */
-#line 483 "assembler.y"
+#line 484 "assembler.y"
     {
       mem[pid][memloc++]=LOCK;
       showterm(0);
@@ -2009,7 +2010,7 @@ yyreduce:
   case 38:
 
 /* Line 1455 of yacc.c  */
-#line 488 "assembler.y"
+#line 489 "assembler.y"
     {
       mem[pid][memloc++]=UNLOCK;
       showterm(0);
@@ -2020,7 +2021,7 @@ yyreduce:
   case 39:
 
 /* Line 1455 of yacc.c  */
-#line 493 "assembler.y"
+#line 494 "assembler.y"
     {
       mem[pid][memloc++]=LD;
       showterm(0);
@@ -2031,7 +2032,7 @@ yyreduce:
   case 40:
 
 /* Line 1455 of yacc.c  */
-#line 498 "assembler.y"
+#line 499 "assembler.y"
     {
       mem[pid][memloc++]=ST;
       showterm(0);
@@ -2042,7 +2043,7 @@ yyreduce:
   case 41:
 
 /* Line 1455 of yacc.c  */
-#line 503 "assembler.y"
+#line 504 "assembler.y"
     {
       int i, j;
       showterm(0);
@@ -2062,7 +2063,7 @@ yyreduce:
   case 42:
 
 /* Line 1455 of yacc.c  */
-#line 517 "assembler.y"
+#line 518 "assembler.y"
     {
       mem[pid][memloc++] = EQ_OP;
       showterm(0);
@@ -2073,7 +2074,7 @@ yyreduce:
   case 43:
 
 /* Line 1455 of yacc.c  */
-#line 522 "assembler.y"
+#line 523 "assembler.y"
     { 
       mem[pid][memloc++]=GT_OP;
       showterm(0);
@@ -2084,7 +2085,7 @@ yyreduce:
   case 44:
 
 /* Line 1455 of yacc.c  */
-#line 527 "assembler.y"
+#line 528 "assembler.y"
     {
       mem[pid][memloc++]=GE_OP;
       showterm(0);
@@ -2095,7 +2096,7 @@ yyreduce:
   case 45:
 
 /* Line 1455 of yacc.c  */
-#line 532 "assembler.y"
+#line 533 "assembler.y"
     {
       mem[pid][memloc++]=LT_OP;
       showterm(0);
@@ -2106,7 +2107,7 @@ yyreduce:
   case 46:
 
 /* Line 1455 of yacc.c  */
-#line 537 "assembler.y"
+#line 538 "assembler.y"
     {
       mem[pid][memloc++]=LE_OP;
       showterm(0);
@@ -2117,7 +2118,7 @@ yyreduce:
   case 47:
 
 /* Line 1455 of yacc.c  */
-#line 542 "assembler.y"
+#line 543 "assembler.y"
     {
       mem[pid][memloc++]=ADD;
       showterm(0);
@@ -2128,7 +2129,7 @@ yyreduce:
   case 48:
 
 /* Line 1455 of yacc.c  */
-#line 547 "assembler.y"
+#line 548 "assembler.y"
     {
       mem[pid][memloc++]=SUB;
       showterm(0);
@@ -2139,7 +2140,7 @@ yyreduce:
   case 49:
 
 /* Line 1455 of yacc.c  */
-#line 552 "assembler.y"
+#line 553 "assembler.y"
     {
       mem[pid][memloc++]=AND;
       showterm(0);
@@ -2150,7 +2151,7 @@ yyreduce:
   case 50:
 
 /* Line 1455 of yacc.c  */
-#line 557 "assembler.y"
+#line 558 "assembler.y"
     {
       mem[pid][memloc++]=OR;
       showterm(0);
@@ -2161,7 +2162,7 @@ yyreduce:
   case 51:
 
 /* Line 1455 of yacc.c  */
-#line 562 "assembler.y"
+#line 563 "assembler.y"
     {
       mem[pid][memloc++]=HALT;
       showterm(0);
@@ -2172,7 +2173,7 @@ yyreduce:
   case 52:
 
 /* Line 1455 of yacc.c  */
-#line 567 "assembler.y"
+#line 568 "assembler.y"
     {
       locjsym[locex].address = memloc;
       sprintf( locjsym[locex].label, "%s", parse[0].idop);
@@ -2185,7 +2186,7 @@ yyreduce:
   case 53:
 
 /* Line 1455 of yacc.c  */
-#line 577 "assembler.y"
+#line 578 "assembler.y"
     {
       sprintf( parse[sindex].idop, "%s", yylval.sptr);
       parse[sindex].type = ID;
@@ -2196,7 +2197,7 @@ yyreduce:
   case 54:
 
 /* Line 1455 of yacc.c  */
-#line 582 "assembler.y"
+#line 583 "assembler.y"
     {
       sprintf( parse[sindex].idop, "%s", yylval.sptr);
       parse[sindex].type = NUMBER;
@@ -2207,7 +2208,7 @@ yyreduce:
 
 
 /* Line 1455 of yacc.c  */
-#line 2211 "assembler.tab.c"
+#line 2212 "assembler.tab.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -2419,24 +2420,35 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 588 "assembler.y"
+#line 589 "assembler.y"
 
 
 main(int argc, char **argv) {
+  printf("***********************\n");
+  printf("      assembler\n");
+  printf("***********************\n");
   
-  if(argc != 2) { 
-    fprintf(stderr, "usage: assembler <input> \n");
-    fprintf(stderr, "output: <input>.cpu \n");
+  if(argc != 3) { 
+    fprintf(stderr, "usage: assembler <input> <output> \n");
+    fprintf(stderr, "output: <output>.cpu \n");
     exit(0);
   }
 
+  char cwd[1024];
+  getcwd(cwd, sizeof(cwd));
+  printf("cwd: %s \n", cwd);
+
+  printf("loading: %s \n", argv[1]);
   // global file pointer
   yyin = fopen(argv[1], "r" );
 
+  printf("attempting to parse...\n");
   // bison function
   yyparse();
   
-  exportMemory(argv[1]);
+  printf("attempting to export...\n");
+  printf("saving: %s\n", argv[2]);
+  exportMemory(argv[2]);
 
   fclose(yyin);
   

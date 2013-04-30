@@ -93,7 +93,7 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 131 "assembler.y"
+#line 132 "assembler.y"
 
   int intval;
   char *sptr;

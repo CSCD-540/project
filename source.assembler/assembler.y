@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 char  *yytext;
 FILE  *yyin;
@@ -588,6 +589,9 @@ int showterm( int beg) {
 %%
 
 main(int argc, char **argv) {
+  printf("***********************\n");
+  printf("      assembler\n");
+  printf("***********************\n");
   
   if(argc != 3) { 
     fprintf(stderr, "usage: assembler <input> <output> \n");
@@ -595,13 +599,21 @@ main(int argc, char **argv) {
     exit(0);
   }
 
-  // global file pointer
-  yyin = fopen(argv[2], "r" );
+  char cwd[1024];
+  getcwd(cwd, sizeof(cwd));
+  printf("cwd: %s \n", cwd);
 
+  printf("loading: %s \n", argv[1]);
+  // global file pointer
+  yyin = fopen(argv[1], "r" );
+
+  printf("attempting to parse...\n");
   // bison function
   yyparse();
   
-  exportMemory(argv[1]);
+  printf("attempting to export...\n");
+  printf("saving: %s\n", argv[2]);
+  exportMemory(argv[2]);
 
   fclose(yyin);
   
