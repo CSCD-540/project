@@ -27,7 +27,7 @@ shell:
 # usage: make run program="prog1out"
 run:
 	./compiled.assembler/assembler ./programs.assembler/$(program) ./programs.cpu/$(program)
-	#./compiled.cpu/cpu ./programs.cpu/$(program).cpu
+	./compiled.cpu/cpu ./programs.cpu/$(program).cpu
 
 
 clean:

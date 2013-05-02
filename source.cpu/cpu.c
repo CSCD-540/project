@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "helper.c"
+
 #include "cpu.tab.h"
 
 #define MAXPRO 6   //max num of processes
@@ -554,13 +556,36 @@ void print_register(int reg[][REGISTERSIZE]) {
 void importMemory(char* filename) {
   int i;
   int j;
-  FILE* fd;
+  int process;
   
-  fd = fopen(filename, "r");
-  fgets()
+  FILE* fp;
   
+  printf("************************\n");
+  printf("   importing memory\n");
   
-  fclose(fd);
+  fp = fopen(filename, "r");  
+  
+  getString(fp);
+  pid = getInt(fp);
+  
+  for (i = 0; i < pid; i++) {
+    getString(fp);
+    process = getInt(fp);
+    
+    getString(fp);
+    endprog[i] = getInt(fp);
+    
+    for (j = 0; j <= endprog[i]; j++) {
+      if (DEBUG)
+        printf("writing: mem[%d][%d] \n", i, j);
+      mem[i][j] = getInt(fp);
+    }  
+  }
+  
+  printf("************************\n");
+  printf("   importing complete\n");
+  
+  fclose(fp);
 }
 
 main(int argc, char **argv) {      
