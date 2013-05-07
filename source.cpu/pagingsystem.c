@@ -7,7 +7,7 @@ int pageTableLRUCounter = 0;                  //
 
 void pageTable_Initialize();
 void pageTable_LoadPage(int process, int page);
-int pageTable_ReplacementPolicy(int process);
+int pageTable_EvictPage(int process);
 int pageTable_getVirtualPage(int process, int page);
 
 void pageTable_Initialize() {
@@ -22,7 +22,7 @@ void pageTable_Initialize() {
 void pageTable_LoadPage(int process, int page) {
   int virtualPage;
   
-  virtualPage = pageTable_ReplacementPolicy(process);
+  virtualPage = pageTable_EvictPage(process);
   pageTable[process][virtualPage] = page;
   pageTableLRU[process][virtualPage] = pageTableLRUCounter++;
 }
@@ -40,7 +40,7 @@ int pageTable_getVirtualPage(int process, int page) {
   
 }
 
-int pageTable_ReplacementPolicy(int process) {
+int pageTable_EvictPage(int process) {
   int i;
   int virtualPage = -1;
   int min = pageTableLRUCounter;

@@ -20,14 +20,14 @@
 #define TRUE 1
 
 #include "pagingsystem.c"
-//#include "scheduler.c"
 
 int  execute;
 
-int  gmem[MAXGMEM];   //global var sit here 
-int  mem[MAXPRO][MAXMEM]; 
-int  endprog[MAXPRO]; // last instruction of proc
-int  pid = 0;  //process id
+int  gmem[MAXGMEM];         // global var sit here 
+int  mem[MAXPRO][MAXMEM];   // physical memory
+
+int  endprog[MAXPRO];       // last instruction of proc
+int  pid = 0;               // current process id
 
 int  p0running;
 
@@ -42,7 +42,7 @@ void print_gmem();
 
 executeit() {
   int cur_proc;
-  int p0=0;
+  int p0 = 0;
   int msg = -1;
   int m;
   int stack[MAXPRO][STACKSIZE];
@@ -50,7 +50,7 @@ executeit() {
   int next_instruct[MAXPRO];
   int proc_complete[MAXPRO];
   int reg[MAXPRO][REGISTERSIZE];
-  int locked=UNLOCKED;
+  int locked = UNLOCKED;
 
   memset(stack, 0, MAXPRO * STACKSIZE * sizeof(int));
   memset(sp , -1, MAXPRO * sizeof(int));
@@ -125,7 +125,7 @@ executeit() {
       break;
   }
 
-  // print_stack(stack,sp); stack should be all 0 and sp at -1
+  print_stack(stack,sp);        // stack should be all 0 and sp at -1
   print_gmem();
   print_register(reg);
 }
@@ -137,13 +137,6 @@ int exe(int stack[][STACKSIZE], int sp[], int reg[][REGISTERSIZE], int next_inst
   char name[11];
 
   i = next_inst[cur_proc];
-
-  /** the following 3 lines are for debugging user program too **/
-  #if 0
-     print_gmem();
-     print_register(reg);
-     keyhit(343);
-  #endif
 
   switch (mem[cur_proc][i]) {
     /** OPEN, READ, CLOSE, WRITE, SEEK ::  OS services **/
@@ -467,6 +460,7 @@ void importMemory(char* filename) {
   int i;
   int j;
   int process;
+  int temp;
   
   FILE* fp;
   
@@ -488,7 +482,9 @@ void importMemory(char* filename) {
     for (j = 0; j <= endprog[i]; j++) {
       if (DEBUG)
         printf("writing: mem[%d][%d] \n", i, j);
-      mem[i][j] = getInt(fp);
+      temp = getInt(fp);
+      mem[i][j] = temp;
+      //fs_load(i, j, temp);
     }  
   }
   
@@ -514,7 +510,7 @@ main(int argc, char **argv) {
   while(TRUE) {
     // scheduler_nextProcess();
     
-    if (execute)
+
       executeit();
       
   }
