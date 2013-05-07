@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define SIZE 1000
+#define FILESYSTEM_SIZE 1000
 
-int filesystem[SIZE];
+int filesystem[FILESYSTEM_SIZE];
 int lastFree;//tracks last free position node
 int lastFill;//tracks last filled position node
 int lastFid;//tracks last file pointer assigned
@@ -26,38 +26,42 @@ int waste;//tracks wasted space, ie space that is too small for header data, thi
  * Data can either be the fid in the case of a fillNode or length in the case of a FreeNode
  * Fill nodes are files currently stored
  * Free nodes are deleted files
+ * 
  */
 
 /**
  * TODO
  * add support ot append to file
+ * add interface
+ * get stuff from filesystem
+ * take info from importmemory in cpu.c and put in firstRun
  */
 
 //run only once, ever. Sets up filesystem parameters
 //though a new filesystem will require this to run i suppose
-void firstRun(){
+void fs_firstRun(){
  lastFid=0;
  lastFree=0;
  lastFill=0;
  end=0;
  waste=0;
- filesystem[SIZE-1]=waste;
- filesystem[SIZE-2]=end;
- filesystem[SIZE-3]=lastFid;
- filesystem[SIZE-4]=lastFree;
- filesystem[SIZE-5]=lastFill;
+ filesystem[FILESYSTEM_SIZE-1]=waste;
+ filesystem[FILESYSTEM_SIZE-2]=end;
+ filesystem[FILESYSTEM_SIZE-3]=lastFid;
+ filesystem[FILESYSTEM_SIZE-4]=lastFree;
+ filesystem[FILESYSTEM_SIZE-5]=lastFill;
 }
 
 /**
  * makes sure values are initialized, should be ran instead of firstRun assuming firstRun has already occurred
  * For now used at the beginning of store and list
  */
-void init(){
-  waste=filesystem[SIZE-1];
-  end=filesystem[SIZE-2];
-  lastFid=filesystem[SIZE-3];
-  lastFree=filesystem[SIZE-4];
-  lastFill=filesystem[SIZE-5];
+void fs_init(){
+  waste=filesystem[FILESYSTEM_SIZE-1];
+  end=filesystem[FILESYSTEM_SIZE-2];
+  lastFid=filesystem[FILESYSTEM_SIZE-3];
+  lastFree=filesystem[FILESYSTEM_SIZE-4];
+  lastFill=filesystem[FILESYSTEM_SIZE-5];
 }
 
 /**
@@ -67,22 +71,22 @@ void init(){
  * Third version: Second version with additional check to see if non-contigous space available before adding to end. this requires delete to be implemented
  * Fourth version: defragmenter. This will need to solve the problem of small fragments smaller then the header size of a record
  */
-void store(int len, int* data){ 
+void fs_store(int len, int* data){
   int prev,loc,i;
  
-  init();
+  fs_init();
   
   //fill in meta info first
   if(!lastFill){
-    lastFill=SIZE-6;
+    lastFill=FILESYSTEM_SIZE-6;
     filesystem[lastFill]=0;//no prev
     filesystem[lastFill-1]=0;//no next
     filesystem[lastFill-2]=lastFid++;
     filesystem[lastFill-3]=0;//since no records start at beginning
     end=lastFill;//last record of meta data
-    filesystem[SIZE-2]=end;
-    filesystem[SIZE-3]=lastFid;
-    filesystem[SIZE-5]=lastFill;
+    filesystem[FILESYSTEM_SIZE-2]=end;
+    filesystem[FILESYSTEM_SIZE-3]=lastFid;
+    filesystem[FILESYSTEM_SIZE-5]=lastFill;
   }else{
     filesystem[lastFill-1]=end-4;//next of prev
     filesystem[end-4]=lastFill;//prev
@@ -95,9 +99,9 @@ void store(int len, int* data){
     loc=filesystem[prev-3];//location of prev data
     filesystem[lastFill-3]=filesystem[loc+3]+4;//size of data plus 4 (for header info)
  
-    filesystem[SIZE-2]=end;
-    filesystem[SIZE-3]=lastFid;
-    filesystem[SIZE-5]=lastFill;
+    filesystem[FILESYSTEM_SIZE-2]=end;
+    filesystem[FILESYSTEM_SIZE-3]=lastFid;
+    filesystem[FILESYSTEM_SIZE-5]=lastFill;
   }
     
   //add to beginning of filesystem
@@ -119,11 +123,11 @@ void store(int len, int* data){
  * 
  * Since a free node is taken from a fill node, 'end' should not change
  */
-void addFree(int index){
+void fs_addFree(int index){
  
   int loc;
   
-  init();
+  fs_init();
   
   if(!lastFree){
     filesystem[index]=0;//no prev
@@ -137,16 +141,16 @@ void addFree(int index){
     lastFree=index;
     loc=filesystem[lastFree-3];
     filesystem[lastFree-2]=filesystem[loc+3];//size of available free space (minus header info) 
-    filesystem[SIZE-4]=lastFree; 
+    filesystem[FILESYSTEM_SIZE-4]=lastFree; 
 }
 
 /**
  * Removes an record with fid from filesystem
  * Version1: Removes it then makes record of it in LastFree **Done**
  */
-void delete(int fid){
+void fs_delete(int fid){
   //in case not initialized already
-  init();
+  fs_init();
  
   int next=0;
   int prev=0;
@@ -155,23 +159,24 @@ void delete(int fid){
   while(hasPrev){
     //check for match
     if(filesystem[hasPrev-2]==fid){
-
-      //make new lastFree
-      addFree(hasPrev);
       
       //if lastFill is being removed, set lastFill to prev
+//issue
       if(lastFill==lastFree)
 	lastFill=filesystem[lastFill];
+//end issue
       
       next=filesystem[hasPrev-1];//get next
       prev=filesystem[hasPrev];//get prev
+      
       //if there is a next then give it location of new prev
       if(next){
-	filesystem[next]=filesystem[prev];
+	filesystem[next]=prev;
       }
+      
       //if there is a prev then give it location of new next
       if(prev){
-	filesystem[prev]=filesystem[next];
+	filesystem[prev-1]=next;
       }
       break;
     }
@@ -180,15 +185,14 @@ void delete(int fid){
   
 }
 
-
 /**
  * Version 1:List fids of files
  * Version 2:???
  */
-void list(){
+void fs_list(){
   
   //in case not initialized already
-  init();
+  fs_init();
  
   int hasPrev=lastFill;
   
@@ -203,27 +207,27 @@ void list(){
  */
 void main(){
  
-  printf("SIZE: %d\n", SIZE);
+  printf("SIZE: %d\n",FILESYSTEM_SIZE);
   
   int a[1]={1};
   int b[2]={1,2};
   int c[3]={1,2,3};
   int d[4]={1,2,3,4};
   
-  firstRun();
-  store(1,a);
-  store(2,b);
-  store(3,c);
-  store(4,d);
+  fs_firstRun();
+  fs_store(1,a);
+  fs_store(2,b);
+  fs_store(3,c);
+  fs_store(4,d);
   printf("Input test\n");
-  list();
-  delete(2);
+  fs_list();
+  fs_delete(2);
   printf("middle delete test\n");
-  list();
-  delete(1);
+  fs_list();
+  fs_delete(0);
   printf("start delete test\n");
-  list();
-  delete(4);
+  fs_list();
+  fs_delete(3);
   printf("end delete test\n");
-  list();  
+  fs_list();  
 }
