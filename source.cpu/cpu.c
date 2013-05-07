@@ -16,60 +16,17 @@
 #define ENDPROCESS 3
 #define p0WRITE 4         // tells p0 to run-p0 should only run after a write to gmem
 
+#define FALSE 0
+#define TRUE 1
+
 #include "pagingsystem.c"
+//#include "scheduler.c"
 
-
-typedef struct { 
-  char labelname[4];
-  int  pid;
-  int  memloc;
-} ILABEL;
-
-typedef struct { 
-  char label[5];
-  int address;
-} JSYM;
-
-typedef struct { 
-  char varname[11];
-  int address;
-} VTABLE;
-
-VTABLE vtable[50];  // variable/address name table
-int vtablex = 0;
-int vaddress = 0;
-
-ILABEL ilabel[10];  // store mem loc for label
-int ilabelindex = 0;
-int initdataindex = 0;
-
-int initdatasection[100];
-int index2initdata[20];
-int index2index=0;
-
-JSYM locjsym[30];
-JSYM refjsym[30];
-int refex=0;
-int locex=0;
-
-typedef struct { 
-  char idop[11];
-  int type;
-} PARSE;
-
-PARSE parse[100];
-
-int   yy_flex_debug;
-int   execute;
-
-int  sindex = 0;
-int  pindex = 0;
-int  memloc = 0;
+int  execute;
 
 int  gmem[MAXGMEM];   //global var sit here 
 int  mem[MAXPRO][MAXMEM]; 
 int  endprog[MAXPRO]; // last instruction of proc
-int  jsym[60]; 
 int  pid = 0;  //process id
 
 int  p0running;
@@ -81,56 +38,6 @@ void push(int stack[][STACKSIZE], int proc_id, int sp[],int data, int calledfrom
 void print_stack(int stack[][STACKSIZE],int sp[]); //debug
 void print_register(int reg[][REGISTERSIZE]); //debug
 void print_gmem();
-
-
-
-
-showjsym() { 
-  int i, j;
-  
-  printf("SHOWSYM %d\n", execute);
-  
-  for(i = 0; i < locex; i++) {
-    if(execute==0) 
-      printf("%s  %d\n", locjsym[i].label, locjsym[i].address );
-  }
-
-  printf("SHOWSYM refex %d\n", refex);
-  
-  for(i = 0; i < refex; i++) {
-    if(execute==0) 
-      printf("%s  %d", refjsym[i].label, refjsym[i].address );
-   
-    if(execute==0) 
-      printf(" --  %d\n", mem[pid][ refjsym[i].address] );
-  }
-  
-  /* search refjsym in locjsym, fill with locjsym.address */  
-  for(i = 0; i < refex; i++) {
-    printf("%s  %d", refjsym[i].label, refjsym[i].address );
-    printf(" --  %d\n", mem[pid][ refjsym[i].address] );
-    
-    /* search refjsym in locjsym, fill with locjsym.address */  
-    if(mem[pid][ refjsym[i].address] != -1)
-      if(execute==0)   
-        printf("jump lable wrong %s\n", refjsym[i].label);
-    
-    for(j = 0; j < locex; j++) {
-
-      if(strcmp(locjsym[j].label, refjsym[i].label) == 0) {
-        mem[pid][ refjsym[i].address] = locjsym[j].address; 
-        break;
-      }
-    }
-    
-    if(j >= locex)
-     if(execute==0) 
-       fprintf(stderr,"lable not found: %s\n", refjsym[i].label);
-  }
-  
-  printf("DONE showsym\n");  
-}
-
 
 
 executeit() {
@@ -555,6 +462,7 @@ void print_register(int reg[][REGISTERSIZE]) {
   }
 }
 
+// TODO: load into Filesystem instead of memory
 void importMemory(char* filename) {
   int i;
   int j;
@@ -590,7 +498,9 @@ void importMemory(char* filename) {
   fclose(fp);
 }
 
-main(int argc, char **argv) {      
+main(int argc, char **argv) {
+  execute = TRUE;
+  
   if(argc != 2) { 
     fprintf(stderr, "usage: cpu <input> \n");
     exit(0);
@@ -601,7 +511,14 @@ main(int argc, char **argv) {
   // read file into memory
   importMemory(argv[1]);
   
-  executeit();
-
+  while(TRUE) {
+    // scheduler_nextProcess();
+    
+    if (execute)
+      executeit();
+      
+  }
+  
+  
   return 0;
 }

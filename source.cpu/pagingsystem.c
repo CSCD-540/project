@@ -1,8 +1,8 @@
-#define PT_VIRTUAL_PAGES 200        // max size of page table
+#define PT_VIRTUAL_PAGES 200                  // max size of page table
 
 int pageTable[MAXPRO][PT_VIRTUAL_PAGES];
-int pageTableLRU[MAXPRO][MAXPRO];         // used to track the last time a page was used
-int pageTableLRUCounter = 0;                 // 
+int pageTableLRU[MAXPRO][PT_VIRTUAL_PAGES];   // used to track the last time a page was used
+int pageTableLRUCounter = 0;                  // 
 
 
 void pageTable_Initialize();
