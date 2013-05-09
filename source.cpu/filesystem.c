@@ -416,13 +416,13 @@ void fs_dump(){
   length=fs_inodeCount();
   inode testArr[length];
   
-/*  fs_list_intf(testArr, length);
-  printf("testArr.fid=%d\ntestArr.filename=%p\ntestArr.length=%d", testArr.fid, testArr.filename, testArr.length);
-  fs_get_intf(1,0,2,buf);
+  fs_list_intf(testArr, length);
+  printf("testArr.fid=%d\ntestArr.filename=%p\ntestArr.length=%d", testArr[0].fid, testArr[0].filename, testArr.length);
+/*  fs_get_intf(1,0,2,buf);
   int i;
   for(i=0;i<2
   printf("testArr.fid=%d\ntestArr.filename=%p\ntestArr.length=%d", testArr.fid, testArr.filename, testArr.length);
   fs_get_intf(5,1,2,buf); 
   printf("testArr.fid=%d\ntestArr.filename=%p\ntestArr.length=%d", testArr.fid, testArr.filename, testArr.length);
  */
-}
+//}*/
