@@ -86,7 +86,7 @@ void fs_store(int len, int* data, int* name){
   
   //fill in meta info first
   if(!lastFill){
-    lastFill=FILESYSTEM_SIZE-5;
+    lastFill=FILESYSTEM_SIZE-6;//first item of metadata if lastFill is not set
     filesystem[lastFill]=0;//no prev
     filesystem[lastFill-1]=0;//no next
     filesystem[lastFill-2]=lastFid++;
@@ -416,7 +416,7 @@ void fs_dump(){
   length=fs_inodeCount();
   inode testArr[length];
   
-  fs_list_intf(testArr, length);
+/*  fs_list_intf(testArr, length);
   printf("testArr.fid=%d\ntestArr.filename=%p\ntestArr.length=%d", testArr.fid, testArr.filename, testArr.length);
   fs_get_intf(1,0,2,buf);
   int i;
@@ -424,5 +424,5 @@ void fs_dump(){
   printf("testArr.fid=%d\ntestArr.filename=%p\ntestArr.length=%d", testArr.fid, testArr.filename, testArr.length);
   fs_get_intf(5,1,2,buf); 
   printf("testArr.fid=%d\ntestArr.filename=%p\ntestArr.length=%d", testArr.fid, testArr.filename, testArr.length);
- 
-}*/
+ */
+}
