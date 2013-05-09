@@ -36,8 +36,6 @@ int waste;//tracks wasted space, ie space that is too small for header data, thi
 
 /**
  * TODO
- * add interface
- * get stuff from filesystem
  * take info from importmemory in cpu.c and put in firstRun
  * add support ot append to file (need to add to freeList)
  */
