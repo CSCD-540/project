@@ -233,38 +233,52 @@ void fs_list(){
  */
 typedef struct {
   int fid;
-  char* filename;
+  int filename[8];
   int length;
 }inode;
 
+
+/**
+ * Returns number of filled inodes
+ */
+int fs_inodeCount(){
+  
+  int count=0;
+  int hasPrev=lastFill;
+  
+  while(hasPrev){
+    count++;
+    hasPrev=filesystem[hasPrev];
+  }
+  
+  return count;
+}
+
 /**
  * Returns a list of filled inodes in the filesystem
+ * a buffer needs to be supplied
  */
-inode* fs_list_intf(){
+void fs_list_intf(inode* toReturn, int len){
   //in case not initialized already
   fs_init();
  
   int hasPrev=lastFill;
-  int count=0;
   int dataLoc=0;
   int i;
-  
-  while(hasPrev)
-    count++;
-  
-  inode toReturn[count];
-  
+    
   hasPrev=lastFill;
   while(hasPrev){
-    count--;
-    toReturn[count].fid=filesystem[hasPrev-2];
+    len--;
+    if(len<0)
+      break;
+    toReturn[len].fid=filesystem[hasPrev-2];
     //copy filename
       for(i=3;i<10&&filesystem[hasPrev-i];i++)
-	toReturn[count].filename[i]=filesystem[hasPrev-i];
-     toReturn[count].filename[i-3]=0;
+	toReturn[len].filename[i]=filesystem[hasPrev-i];
+     toReturn[len].filename[i-3]=0;
     
     dataLoc=filesystem[hasPrev-11];//location of data
-    toReturn[count].length=filesystem[dataLoc+3];//length of data
+    toReturn[len].length=filesystem[dataLoc+3];//length of data
 
     hasPrev=filesystem[hasPrev];
   }
@@ -334,12 +348,19 @@ inode fs_store_intf(int* data){
   
   toReturn.fid=filesystem[lastFill-2];
     //copy filename
-    for(i=3;i<10&&name[i];i++)
-      toReturn.filename[i]=filesystem[lastFill-i];
-    toReturn.filename[i-3]=0;
+
+    if(name){
+    //while i is less than ten, and name[i] is not zero
+      for(i=3;i<10&&name[i-3];i++)
+	toReturn.filename[i-3]=filesystem[lastFill-i];
+      toReturn.filename[i-3]=0;
+    }else
+      toReturn.filename[0]=0;
     
     dataLoc=filesystem[lastFill-11];//location of data
     toReturn.length=len;//length of data  
+    
+    return toReturn;
  
 }
 /**
@@ -375,4 +396,17 @@ void main(){
   fs_delete(3);
   printf("end delete test\n");
   fs_list();  
+  
+  int e[5]={1,2,3,4,5};
+  int length;
+  inode testNode;
+  int buf[100];
+  
+  fs_store_intf(e);
+  length=fs_inodeCount();
+  inode testArr[length];
+  
+  fs_list_intf(testArr, length);
+  fs_get_intf(1,0,2,buf);
+  fs_get_intf(5,1,2,buf); 
 }
