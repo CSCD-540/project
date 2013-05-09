@@ -22,9 +22,9 @@ int waste;//tracks wasted space, ie space that is too small for header data, thi
  *  start of record->
  * 
  * Description of structure of meta node
- * +-------------------------------------------------------------------------------------------------------------------------------------+
+ * +--------------------------------------------------------------------------------------------------------------------------------------------------+
  * |next node|record location(1)|data(1)|file name(8)|next 0 if none(1)|prev 0 if none(1)|last fill loc(1)|last free loc(1)|lastFid(1)|end(1)|waste(1)|
- * +-------------------------------------------------------------------------------------------------------------------------------------+
+ * +--------------------------------------------------------------------------------------------------------------------------------------------------+
  * 				 	                              <-stat of meta node
  * 
  * Data can either be the fid in the case of a fillNode or length in the case of a FreeNode
@@ -36,6 +36,7 @@ int waste;//tracks wasted space, ie space that is too small for header data, thi
 
 /**
  * TODO
+ * fix logical errors fs_get_intf
  * make global variables for offsets
  * change inode.filename to char* instead of int* also make 16 characters
  * take info from importmemory in cpu.c and put in firstRun
@@ -85,7 +86,7 @@ void fs_store(int len, int* data, int* name){
   
   //fill in meta info first
   if(!lastFill){
-    lastFill=FILESYSTEM_SIZE-6;
+    lastFill=FILESYSTEM_SIZE-5;
     filesystem[lastFill]=0;//no prev
     filesystem[lastFill-1]=0;//no next
     filesystem[lastFill-2]=lastFid++;
