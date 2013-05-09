@@ -36,6 +36,8 @@ int waste;//tracks wasted space, ie space that is too small for header data, thi
 
 /**
  * TODO
+ * print out data
+ * make global variables for offsets
  * take info from importmemory in cpu.c and put in firstRun
  * add support ot append to file (need to add to freeList)
  */
@@ -256,7 +258,7 @@ int fs_inodeCount(){
  * Returns a list of filled inodes in the filesystem
  * a buffer needs to be supplied
  */
-void fs_list_intf(inode* toReturn, int len){
+void fs_list_intf(inode* buf, int len){
   //in case not initialized already
   fs_init();
  
@@ -361,15 +363,23 @@ inode fs_store_intf(int* data){
     return toReturn;
  
 }
+
+void fs_dump(){
+  int i;
+  for(i=0;i<FILESYSTEM_SIZE;i++)
+    printf("%d", filesystem[i]);
+}
+
 /**
  * End interface items
  */
 
 
+
 /**
  * Tester for the filesystem
  */
-void main(){
+/*void main(){
  
   printf("SIZE: %d\n",FILESYSTEM_SIZE);
   
@@ -407,4 +417,4 @@ void main(){
   fs_list_intf(testArr, length);
   fs_get_intf(1,0,2,buf);
   fs_get_intf(5,1,2,buf); 
-}
+}*/
