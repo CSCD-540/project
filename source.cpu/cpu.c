@@ -20,6 +20,7 @@
 #define TRUE 1
 
 #include "pagingsystem.c"
+#include "filesystem.c"
 
 int  execute;
 
@@ -479,23 +480,78 @@ void importMemory(char* filename) {
     getString(fp);
     endprog[i] = getInt(fp);
     
+    int data[endprog[i]];
+    
     for (j = 0; j <= endprog[i]; j++) {
       if (DEBUG)
         printf("writing: mem[%d][%d] \n", i, j);
       temp = getInt(fp);
       mem[i][j] = temp;
+      data[j] = temp;
       //fs_load(i, j, temp);
-    }  
+    }
+    
+    printf("\n\n ***** pid: %d **** \n", i);
+    
+    for (j = 0; j < endprog[i]; j++)
+      printf("%4d ", data[j]);
+    
+    printf("\n\n");
+    
+    fs_store(endprog[1], data, 0);
   }
   
   printf("************************\n");
   printf("   importing complete\n");
+  
+  inode nodes[fs_inodeCount()];
+  fs_list_intf(nodes, fs_inodeCount());
+
+  
+  for (i = 0; i < fs_inodeCount(); i++) {
+    int fid = i;
+    int data[endprog[i]];
+    
+    printf("\n\n ***** fid: %d **** \n length: %d \n", fid, nodes[i].length);
+    
+    fs_get_intf(fid, 0, nodes[i].length, data);
+    
+    for (j = 0; j < nodes[i].length; j++)
+      printf("%4d ", data[j]);
+    
+    printf("\n\n");
+  }
+    
+  
+    
+    
+    
+    
+    
+  
+  /*
+  printf("**** FILE SYSTEM *****\n");
+  fs_dump();
+  printf("\n\n");
+  */
+  
+  /*
+  printf("**** MEM *****\n");
+  for (i = 0; i < MAXPRO; i++) {
+    for (j = 0; j < MAXMEM; j++) {
+      printf("%4d ", mem[i][j]);
+    }
+    printf("\n\n");
+  }
+  printf("\n\n");
+  */
   
   fclose(fp);
 }
 
 main(int argc, char **argv) {
   execute = TRUE;
+  fs_firstRun();
   
   if(argc != 2) { 
     fprintf(stderr, "usage: cpu <input> \n");
