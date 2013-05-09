@@ -368,7 +368,7 @@ inode fs_store_intf(int* data){
 void fs_dump(){
   int i;
   for(i=0;i<FILESYSTEM_SIZE;i++)
-    printf("%d", filesystem[i]);
+    printf("%4d ", filesystem[i]);
 }
 
 /**
