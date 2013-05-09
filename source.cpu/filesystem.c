@@ -36,10 +36,11 @@ int waste;//tracks wasted space, ie space that is too small for header data, thi
 
 /**
  * TODO
- * print out data
  * make global variables for offsets
+ * change inode.filename to char* instead of int* also make 16 characters
  * take info from importmemory in cpu.c and put in firstRun
  * add support ot append to file (need to add to freeList)
+ * move interface items to different file
  */
 
 //run only once, ever. Sets up filesystem parameters
@@ -271,14 +272,14 @@ void fs_list_intf(inode* buf, int len){
     len--;
     if(len<0)
       break;
-    toReturn[len].fid=filesystem[hasPrev-2];
+    buf[len].fid=filesystem[hasPrev-2];
     //copy filename
       for(i=3;i<10&&filesystem[hasPrev-i];i++)
-	toReturn[len].filename[i]=filesystem[hasPrev-i];
-     toReturn[len].filename[i-3]=0;
+	buf[len].filename[i]=filesystem[hasPrev-i];
+     buf[len].filename[i-3]=0;
     
     dataLoc=filesystem[hasPrev-11];//location of data
-    toReturn[len].length=filesystem[dataLoc+3];//length of data
+    buf[len].length=filesystem[dataLoc+3];//length of data
 
     hasPrev=filesystem[hasPrev];
   }
@@ -312,7 +313,7 @@ void fs_get_intf(int fid, int offset, int length, int* toReturn){
       
       //ensure sticks within file
       if(offset+length>dataLen)
-	length=dataLen-offset;
+	toReturn=0;//length=dataLen-offset;
 
       //dataLoc location of record
       //4 is the offset where data portion of record is located
@@ -415,6 +416,12 @@ void fs_dump(){
   inode testArr[length];
   
   fs_list_intf(testArr, length);
+  printf("testArr.fid=%d\ntestArr.filename=%p\ntestArr.length=%d", testArr.fid, testArr.filename, testArr.length);
   fs_get_intf(1,0,2,buf);
+  int i;
+  for(i=0;i<2
+  printf("testArr.fid=%d\ntestArr.filename=%p\ntestArr.length=%d", testArr.fid, testArr.filename, testArr.length);
   fs_get_intf(5,1,2,buf); 
+  printf("testArr.fid=%d\ntestArr.filename=%p\ntestArr.length=%d", testArr.fid, testArr.filename, testArr.length);
+ 
 }*/
