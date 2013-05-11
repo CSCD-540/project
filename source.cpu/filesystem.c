@@ -325,6 +325,7 @@ void fs_get_intf(int fid, int offset, int length, int* toReturn){
       //offset is offset from beginning of record to interested data
       for(i=0;i<length;i++){
 	toReturn[i]=filesystem[dataLoc+4+offset+i];
+	printf("\n%d\n", toReturn[i]);
       }
       
       break;
@@ -332,7 +333,7 @@ void fs_get_intf(int fid, int offset, int length, int* toReturn){
     hasPrev=filesystem[hasPrev];
   }
 
-  if(hasPrev)
+  if(!hasPrev)
     toReturn=0;
   
 }
@@ -384,7 +385,7 @@ void fs_dump(){
 /**
  * Tester for the filesystem
  */
-void main(){
+/*void main(){
  
   printf("SIZE: %d\n",FILESYSTEM_SIZE);
   
@@ -431,9 +432,9 @@ void main(){
   for(i=0;i<1;i++)
     printf("%d ", buf[i]);
   printf("\n");
-  fs_get_intf(5,1,3,buf); 
+  fs_get_intf(4,1,3,buf);
   for(i=0;i<3;i++)
     printf("%d ", buf[i]);
   printf("\n");
- //*/
-}
+ 
+}*/
