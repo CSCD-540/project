@@ -90,6 +90,7 @@ void fs_store(int len, int* data, int* name){
     filesystem[lastFill]=0;//no prev
     filesystem[lastFill-1]=0;//no next
     filesystem[lastFill-2]=lastFid++;
+    loc=0;
     //if name not equal
     if(name){
       int i;
@@ -99,30 +100,29 @@ void fs_store(int len, int* data, int* name){
      filesystem[lastFill-i]=0;
     }else
       filesystem[lastFill-3]=0;//terminate
-    filesystem[lastFill-11]=0;//since no records start at beginning
+    filesystem[lastFill-11]=0;//since no records, start at beginning
     end=lastFill;//last record of meta data
     filesystem[FILESYSTEM_SIZE-2]=end;
     filesystem[FILESYSTEM_SIZE-3]=lastFid;
     filesystem[FILESYSTEM_SIZE-5]=lastFill;
   }else{
-    filesystem[lastFill-1]=end-4;//next of prev
-    filesystem[end-4]=lastFill;//prev
-    lastFill=end-4;//meta record is 4 bytes long  
+    filesystem[lastFill-1]=end-12;//next of prev
+    filesystem[end-12]=lastFill;//prev
+    lastFill=end-12;//meta record is 12 bytes long  
     end=lastFill;
     filesystem[lastFill-1]=0;//no next
     filesystem[lastFill-2]=lastFid++;
     
     prev=filesystem[lastFill];
     loc=filesystem[prev-11];//location of prev data
-    filesystem[lastFill-11]=filesystem[loc+3]+4;//size of data plus 4 (for header info)
- 
+    filesystem[lastFill-11]=filesystem[loc+3]+4+loc;//size of prev data plus 4 (for header info)+location of prev data
+    
     filesystem[FILESYSTEM_SIZE-2]=end;
     filesystem[FILESYSTEM_SIZE-3]=lastFid;
     filesystem[FILESYSTEM_SIZE-5]=lastFill;
   }
-    
-  //add to beginning of filesystem
-  loc=filesystem[lastFill-3];//location according to meta data
+  
+  loc=filesystem[lastFill-11];//set loc to data will be currently filling
   //prev and next are 0 at this point. They are only used when fragmenting
   filesystem[loc]=0;
   filesystem[loc+1]=0;
@@ -290,7 +290,8 @@ void fs_list_intf(inode* buf, int len){
  * IFACE
  * Returns data based upon a file id. It takes data from the offset to the length, assuming offset+length < the total file length
  * If offset is greater than file length, it will return 0
- * If offset+length is greater than file length, but offset is less than file length, it will read to the end of the file
+ * If offset+length is greater than file length, it will return 0
+ * If fid not found, it will return 0
  * toReturn is a supplied buffer of maximum length 'length'
  * 
  * Warning, has not been fully tested
@@ -309,13 +310,16 @@ void fs_get_intf(int fid, int offset, int length, int* toReturn){
       dataLen=filesystem[dataLoc+3];
 
       //ensure offset is less than file length      
-      if(offset>=dataLen)
+      if(offset>=dataLen){
 	toReturn=0;
+	length=0;
+      }
       
       //ensure sticks within file
-      if(offset+length>dataLen)
-	toReturn=0;//length=dataLen-offset;
-
+      if(offset+length>dataLen){
+	toReturn=0;
+	length=0;
+      }
       //dataLoc location of record
       //4 is the offset where data portion of record is located
       //offset is offset from beginning of record to interested data
@@ -337,9 +341,8 @@ void fs_get_intf(int fid, int offset, int length, int* toReturn){
  * Stores new data to the filesystem, then returns the corresponding inode
  * 
  */
-inode fs_store_intf(int* data){
+inode fs_store_intf(int* data, int len){
 
-  int len=sizeof(data)/sizeof(data[0]);  //determine length of data
   int* name=0;//no idea how to get this currently, might not use it
   int dataLoc=0;
   int i;
@@ -381,7 +384,7 @@ void fs_dump(){
 /**
  * Tester for the filesystem
  */
-/*void main(){
+void main(){
  
   printf("SIZE: %d\n",FILESYSTEM_SIZE);
   
@@ -412,17 +415,25 @@ void fs_dump(){
   inode testNode;
   int buf[100];
   
-  fs_store_intf(e);
+  fs_store_intf(e, 5);
+
+  fs_dump();
+
   length=fs_inodeCount();
   inode testArr[length];
   
   fs_list_intf(testArr, length);
-  printf("testArr.fid=%d\ntestArr.filename=%p\ntestArr.length=%d", testArr[0].fid, testArr[0].filename, testArr.length);
-/*  fs_get_intf(1,0,2,buf);
+  printf("testArr.fid=%d\ntestArr.filename=%p\ntestArr.length=%d\n", testArr[0].fid, testArr[0].filename, testArr[0].length);
+  
+  
+  fs_get_intf(1,0,1,buf);
   int i;
-  for(i=0;i<2
-  printf("testArr.fid=%d\ntestArr.filename=%p\ntestArr.length=%d", testArr.fid, testArr.filename, testArr.length);
-  fs_get_intf(5,1,2,buf); 
-  printf("testArr.fid=%d\ntestArr.filename=%p\ntestArr.length=%d", testArr.fid, testArr.filename, testArr.length);
- */
-//}*/
+  for(i=0;i<1;i++)
+    printf("%d ", buf[i]);
+  printf("\n");
+  fs_get_intf(5,1,3,buf); 
+  for(i=0;i<3;i++)
+    printf("%d ", buf[i]);
+  printf("\n");
+ //*/
+}
