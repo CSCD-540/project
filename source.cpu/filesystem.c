@@ -325,7 +325,7 @@ void fs_get_intf(int fid, int offset, int length, int* toReturn){
       //offset is offset from beginning of record to interested data
       for(i=0;i<length;i++){
 	toReturn[i]=filesystem[dataLoc+4+offset+i];
-	printf("\n%d\n", toReturn[i]);
+	//printf("\n%d\n", toReturn[i]);
       }
       
       break;
@@ -437,4 +437,5 @@ void fs_dump(){
     printf("%d ", buf[i]);
   printf("\n");
  
-}*/
+}
+*/

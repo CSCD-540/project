@@ -10,6 +10,7 @@ assembler:
 
 
 cpu:
+	clear
 	gcc ./source.cpu/cpu.c -o ./compiled.cpu/cpu
 
 filesystem:

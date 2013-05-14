@@ -2,8 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "helper.c"
+
 #include "cpu.tab.h"
+
+#define DEBUG 0
 
 #define MAXPRO 6          // max num of processes
 #define MAXMEM 200        // max size of a process
@@ -19,8 +21,9 @@
 #define FALSE 0
 #define TRUE 1
 
+#include "helper.c"
 #include "pagingsystem.c"
-#include "filesystem.c"
+#include "filesystem2.c"
 
 int  execute;
 
@@ -456,23 +459,19 @@ void print_register(int reg[][REGISTERSIZE]) {
   }
 }
 
-// TODO: load into Filesystem instead of memory
+// TODO: convert to paging
 void importMemory(char* filename) {
   int i;
   int j;
   int process;
-  int temp;
   
   FILE* fp;
-  
-  printf("************************\n");
-  printf("   importing memory\n");
   
   fp = fopen(filename, "r");  
   
   getString(fp);
   pid = getInt(fp);
-  
+
   for (i = 0; i < pid; i++) {
     getString(fp);
     process = getInt(fp);
@@ -482,92 +481,75 @@ void importMemory(char* filename) {
     
     int data[endprog[i]];
     
-    for (j = 0; j <= endprog[i]; j++) {
-      if (DEBUG)
-        printf("writing: mem[%d][%d] \n", i, j);
-      temp = getInt(fp);
-      mem[i][j] = temp;
-      data[j] = temp;
-      //fs_load(i, j, temp);
-    }
-    
-    printf("\n\n ***** pid: %d **** \n", i);
-    
-    for (j = 0; j < endprog[i]; j++)
-      printf("%4d ", data[j]);
-    
-    printf("\n\n");
-    
-    fs_store(endprog[1], data, 0);
+    for (j = 0; j <= endprog[i]; j++)
+      mem[i][j] = getInt(fp);
   }
-  
-  printf("************************\n");
-  printf("   importing complete\n");
-  
-  inode nodes[fs_inodeCount()];
-  fs_list_intf(nodes, fs_inodeCount());
-
-  
-  for (i = 0; i < fs_inodeCount(); i++) {
-    int fid = i;
-    int data[endprog[i]];
-    
-    printf("\n\n ***** fid: %d **** \n length: %d \n", fid, nodes[i].length);
-    
-    fs_get_intf(fid, 0, nodes[i].length, data);
-    
-    for (j = 0; j < nodes[i].length; j++)
-      printf("%4d ", data[j]);
-    
-    printf("\n\n");
-  }
-    
-  
-    
-    
-    
-    
-    
-  
-  /*
-  printf("**** FILE SYSTEM *****\n");
-  fs_dump();
-  printf("\n\n");
-  */
-  
-  /*
-  printf("**** MEM *****\n");
-  for (i = 0; i < MAXPRO; i++) {
-    for (j = 0; j < MAXMEM; j++) {
-      printf("%4d ", mem[i][j]);
-    }
-    printf("\n\n");
-  }
-  printf("\n\n");
-  */
   
   fclose(fp);
 }
 
+
 main(int argc, char **argv) {
   execute = TRUE;
-  fs_firstRun();
-  
+
   if(argc != 2) { 
     fprintf(stderr, "usage: cpu <input> \n");
     exit(0);
   }
   
+  printf("\n\n\n\n");
+  starLine();
+  printf("cpu starting...\n");
+  starLine();
+  printf("\n");
+  
+  fs_initialize();
   pageTable_Initialize();
+  
+  if (DEBUG)
+    fs_test();
+  
+  heavyLine();
+  fs_import(argv[1]);
+  printf("\n");
+
+  heavyLine(); 
+  printf("displaying inodes... \n");
+  lightLine();
+  fs_dump();
+  printf("\n");
+  
+  heavyLine();
+  printf("displaying filesystem... \n");
+  lightLine();
+  fs_dumpAllData();
+  lightLine();
+  
+  int i;
+  int j;
+  
+  int tempPageSize = 5;
+  int tempPage[tempPageSize];
+  
+    
+  printf("getFile()\n");
+  printf("displaying tempPage: \n");
+  
+  for (i = 0; i < 4; i++) {
+    fs_getFile(1, i * tempPageSize, tempPageSize, tempPage);
+  
+    for (j = 0; j < tempPageSize; j++)
+      printf("%5d", tempPage[j]);
+    printf("\n");
+  }
+  lightLine();
 
   // read file into memory
   importMemory(argv[1]);
   
   while(TRUE) {
     // scheduler_nextProcess();
-    
-
-      executeit();
+    executeit();
       
   }
   
