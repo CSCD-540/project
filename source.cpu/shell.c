@@ -28,7 +28,8 @@ int main() {
 				} //end if
 				else {
 					//chdir(arg);
-					result = changeDir(arg);
+					//result = changeDir(arg);
+					changeDir(arg);
 					if (result != 0) {
 						//if something goes wrong with changing directories; can be modified to deal with different return values.
 						printf("Error in changing directory; please try again.\n");

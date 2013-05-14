@@ -30,6 +30,8 @@ run:
 	./compiled.assembler/assembler ./programs.assembler/$(program) ./programs.cpu/$(program)
 	./compiled.cpu/cpu ./programs.cpu/$(program).cpu
 
+runShell:
+	./compiled.cpu/shell
 
 clean:
 	rm ./compiled.assembler/*
