@@ -2,7 +2,6 @@
 #include <stdlib.h>
 
 #define FILESYSTEM_SIZE 1000
-#define FS_DEBUG
 
 int filesystem[FILESYSTEM_SIZE];
 int lastFree;//tracks last free position node
@@ -54,6 +53,7 @@ int waste;//tracks wasted space, ie space that is too small for header data, thi
 
 /**
  * TODO
+ * make global variables for offsets
  * change inode.filename to char* instead of int* also make 16 characters
  * take info from importmemory in cpu.c and put in firstRun
  * add support ot append to file (need to add to freeList)
@@ -460,4 +460,3 @@ void fs_test(){
   printf("\n");
  
 }
-
