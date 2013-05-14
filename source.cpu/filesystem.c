@@ -11,6 +11,23 @@ int end;//tracks end of meta data
 int waste;//tracks wasted space, ie space that is too small for header data, this will be useful for determining when to defragment
 
 /**
+ * offset constants
+ * All are defined as positive values, so node offsets should be subtracted
+ * FS_PREV_NODE_OFFSET or FS_PREV_REC_OFFSET are not used, but they are included in case they are needed in the future
+ */
+#define FS_PREV_REC_OFFSET 0
+#define FS_NEXT_REC_OFFSET 1
+#define FS_FID_REC_OFFSET 2
+#define FS_SIZE_REC_OFFSET 3
+#define FS_DATA_REC_OFFSET 4
+#define FS_PREV_NODE_OFFSET 0
+#define FS_NEXT_NODE_OFFSET 1
+#define FS_NAME_NODE_OFFSET 2
+#define FS_NAME_NODE_SIZE 16
+#define FS_DATA_NODE_OFFSET (FS_NAME_NODE_OFFSET+FS_NAME_NODE_SIZE)
+#define FS_LOCATION_NODE_OFFSET (1+FS_NAME_NODE_OFFSET+FS_NAME_NODE_SIZE)
+
+/**
  * Search for IFACE to find interface items
  */
 
@@ -22,10 +39,10 @@ int waste;//tracks wasted space, ie space that is too small for header data, thi
  *  start of record->
  * 
  * Description of structure of meta node
- * +--------------------------------------------------------------------------------------------------------------------------------------------------+
- * |next node|record location(1)|data(1)|file name(8)|next 0 if none(1)|prev 0 if none(1)|last fill loc(1)|last free loc(1)|lastFid(1)|end(1)|waste(1)|
- * +--------------------------------------------------------------------------------------------------------------------------------------------------+
- * 				 	                              <-stat of meta node
+ * +---------------------------------------------------------------------------------------------------------------------------------------------------+
+ * |next node|record location(1)|data(1)|file name(16)|next 0 if none(1)|prev 0 if none(1)|last fill loc(1)|last free loc(1)|lastFid(1)|end(1)|waste(1)|
+ * +---------------------------------------------------------------------------------------------------------------------------------------------------+
+ * 				 	                               <-stat of meta node
  * 
  * Data can either be the fid in the case of a fillNode or length in the case of a FreeNode
  * Fill nodes are files currently stored
@@ -36,7 +53,6 @@ int waste;//tracks wasted space, ie space that is too small for header data, thi
 
 /**
  * TODO
- * fix logical errors fs_get_intf
  * make global variables for offsets
  * change inode.filename to char* instead of int* also make 16 characters
  * take info from importmemory in cpu.c and put in firstRun
@@ -88,49 +104,49 @@ void fs_store(int len, int* data, int* name){
   if(!lastFill){
     lastFill=FILESYSTEM_SIZE-6;//first item of metadata if lastFill is not set
     filesystem[lastFill]=0;//no prev
-    filesystem[lastFill-1]=0;//no next
-    filesystem[lastFill-2]=lastFid++;
+    filesystem[lastFill-FS_NEXT_NODE_OFFSET]=0;//no next
+    filesystem[lastFill-FS_DATA_NODE_OFFSET]=lastFid++;
     loc=0;
     //if name not equal
     if(name){
       int i;
       //copy name
-      for(i=3;i<10&&name[i];i++)
+      for(i=FS_NAME_NODE_OFFSET;i<FS_NAME_NODE_OFFSET+FS_NAME_NODE_SIZE&&name[i];i++)
 	filesystem[lastFill-i]=name[i];
      filesystem[lastFill-i]=0;
     }else
-      filesystem[lastFill-3]=0;//terminate
-    filesystem[lastFill-11]=0;//since no records, start at beginning
+      filesystem[lastFill-FS_NAME_NODE_OFFSET]=0;//terminate
+    filesystem[lastFill-FS_LOCATION_NODE_OFFSET]=0;//since no records, start at beginning
     end=lastFill;//last record of meta data
     filesystem[FILESYSTEM_SIZE-2]=end;
     filesystem[FILESYSTEM_SIZE-3]=lastFid;
     filesystem[FILESYSTEM_SIZE-5]=lastFill;
   }else{
-    filesystem[lastFill-1]=end-12;//next of prev
-    filesystem[end-12]=lastFill;//prev
-    lastFill=end-12;//meta record is 12 bytes long  
+    filesystem[lastFill-1]=end-(FS_LOCATION_NODE_OFFSET+1);//next of prev
+    filesystem[end-(FS_LOCATION_NODE_OFFSET+1)]=lastFill;//prev
+    lastFill=end-(FS_LOCATION_NODE_OFFSET+1);//meta record is 12 bytes long  
     end=lastFill;
-    filesystem[lastFill-1]=0;//no next
-    filesystem[lastFill-2]=lastFid++;
+    filesystem[lastFill-FS_NEXT_NODE_OFFSET]=0;//no next
+    filesystem[lastFill-FS_DATA_NODE_OFFSET]=lastFid++;
     
     prev=filesystem[lastFill];
-    loc=filesystem[prev-11];//location of prev data
-    filesystem[lastFill-11]=filesystem[loc+3]+4+loc;//size of prev data plus 4 (for header info)+location of prev data
+    loc=filesystem[prev-FS_LOCATION_NODE_OFFSET];//location of prev data
+    filesystem[lastFill-FS_LOCATION_NODE_OFFSET]=filesystem[loc+3]+4+loc;//size of prev data plus 4 (for header info)+location of prev data
     
     filesystem[FILESYSTEM_SIZE-2]=end;
     filesystem[FILESYSTEM_SIZE-3]=lastFid;
     filesystem[FILESYSTEM_SIZE-5]=lastFill;
   }
   
-  loc=filesystem[lastFill-11];//set loc to data will be currently filling
+  loc=filesystem[lastFill-FS_LOCATION_NODE_OFFSET];//set loc to data will be currently filling
   //prev and next are 0 at this point. They are only used when fragmenting
   filesystem[loc]=0;
-  filesystem[loc+1]=0;
-  filesystem[loc+2]=filesystem[lastFill-2];//set fid
-  filesystem[loc+3]=len;
+  filesystem[loc+FS_NEXT_REC_OFFSET]=0;
+  filesystem[loc+FS_FID_REC_OFFSET]=filesystem[lastFill-FS_DATA_NODE_OFFSET];//set fid
+  filesystem[loc+FS_SIZE_REC_OFFSET]=len;
   //file in data
   for(i=0;i<len;i++){
-    filesystem[loc+4+i]=data[i];
+    filesystem[loc+FS_DATA_REC_OFFSET+i]=data[i];
   }
   
 }
@@ -149,16 +165,16 @@ void fs_addFree(int index){
   
   if(!lastFree){
     filesystem[index]=0;//no prev
-    filesystem[index-1]=0;//no next
+    filesystem[index-FS_NEXT_NODE_OFFSET]=0;//no next
   }else{
-    filesystem[lastFree-1]=index;//next of prev
+    filesystem[lastFree-FS_NEXT_NODE_OFFSET]=index;//next of prev
     filesystem[index]=lastFree;//prev
-    filesystem[index-1]=0;//next
+    filesystem[index-FS_NEXT_NODE_OFFSET]=0;//next
   }
    
     lastFree=index;
-    loc=filesystem[lastFree-3];
-    filesystem[lastFree-2]=filesystem[loc+3];//size of available free space (minus header info) 
+    loc=filesystem[lastFree-FS_LOCATION_NODE_OFFSET];
+    filesystem[lastFree-FS_DATA_NODE_OFFSET]=filesystem[loc+FS_SIZE_REC_OFFSET];//size of available free space (minus header info) 
     filesystem[FILESYSTEM_SIZE-4]=lastFree; 
 }
 
@@ -177,17 +193,16 @@ void fs_delete(int fid){
   
   while(hasPrev){
     //check for match
-    if(filesystem[hasPrev-2]==fid){
+    if(filesystem[hasPrev-FS_DATA_NODE_OFFSET]==fid){
       
       //if lastFill is being removed, set lastFill to prev
-//issue
+
       if(lastFill==hasPrev){
 	lastFill=filesystem[lastFill];
         filesystem[FILESYSTEM_SIZE-5]=lastFill;
       }else{
-//end issue
 
-	next=filesystem[hasPrev-1];//get next
+	next=filesystem[hasPrev-FS_NEXT_NODE_OFFSET];//get next
 	prev=filesystem[hasPrev];//get prev
 	
 	//if there is a next then give it location of new prev
@@ -197,7 +212,7 @@ void fs_delete(int fid){
 	
 	//if there is a prev then give it location of new next
 	if(prev){
-	  filesystem[prev-1]=next;
+	  filesystem[prev-FS_NEXT_NODE_OFFSET]=next;
 	}
       }
       break;
@@ -219,7 +234,7 @@ void fs_list(){
   int hasPrev=lastFill;
   
   while(hasPrev){
-    printf("FID: %d\n",filesystem[hasPrev-2]);
+    printf("FID: %d\n",filesystem[hasPrev-FS_DATA_NODE_OFFSET]);
     hasPrev=filesystem[hasPrev];
   }
 }
@@ -235,7 +250,7 @@ void fs_list(){
  */
 typedef struct {
   int fid;
-  int filename[8];
+  int filename[FS_NAME_NODE_SIZE];
   int length;
 }inode;
 
@@ -266,23 +281,25 @@ void fs_list_intf(inode* buf, int len){
  
   int hasPrev=lastFill;
   int dataLoc=0;
-  int i;
+  int i,j;
     
+  j=0;
   hasPrev=lastFill;
-  while(hasPrev){
+  while(hasPrev&&j<len){
     len--;
     if(len<0)
       break;
-    buf[len].fid=filesystem[hasPrev-2];
+    buf[len].fid=filesystem[hasPrev-FS_DATA_NODE_OFFSET];
     //copy filename
-      for(i=3;i<10&&filesystem[hasPrev-i];i++)
+      for(i=FS_NAME_NODE_OFFSET;i<(FS_NAME_NODE_OFFSET+FS_NAME_NODE_SIZE)&&filesystem[hasPrev-i];i++)
 	buf[len].filename[i]=filesystem[hasPrev-i];
-     buf[len].filename[i-3]=0;
+     buf[len].filename[i-FS_NAME_NODE_OFFSET]=0;
     
-    dataLoc=filesystem[hasPrev-11];//location of data
-    buf[len].length=filesystem[dataLoc+3];//length of data
+    dataLoc=filesystem[hasPrev-FS_LOCATION_NODE_OFFSET];//location of data
+    buf[len].length=filesystem[dataLoc+FS_SIZE_REC_OFFSET];//length of data
 
     hasPrev=filesystem[hasPrev];
+    j++;
   }
 }
 
@@ -305,9 +322,9 @@ void fs_get_intf(int fid, int offset, int length, int* toReturn){
   
   while(hasPrev){
     //check for match
-    if(filesystem[hasPrev-2]==fid){
-      dataLoc=filesystem[hasPrev-11];      
-      dataLen=filesystem[dataLoc+3];
+    if(filesystem[hasPrev-FS_DATA_NODE_OFFSET]==fid){
+      dataLoc=filesystem[hasPrev-FS_LOCATION_NODE_OFFSET];      
+      dataLen=filesystem[dataLoc+FS_SIZE_REC_OFFSET];
 
       //ensure offset is less than file length      
       if(offset>=dataLen){
@@ -324,8 +341,8 @@ void fs_get_intf(int fid, int offset, int length, int* toReturn){
       //4 is the offset where data portion of record is located
       //offset is offset from beginning of record to interested data
       for(i=0;i<length;i++){
-	toReturn[i]=filesystem[dataLoc+4+offset+i];
-	//printf("\n%d\n", toReturn[i]);
+	toReturn[i]=filesystem[dataLoc+FS_DATA_REC_OFFSET+offset+i];
+	printf("\n%d\n", toReturn[i]);
       }
       
       break;
@@ -352,18 +369,18 @@ inode fs_store_intf(int* data, int len){
   //will always be stored as lastFilled.
   fs_store(len, data, 0);
   
-  toReturn.fid=filesystem[lastFill-2];
+  toReturn.fid=filesystem[lastFill-FS_DATA_NODE_OFFSET];
     //copy filename
 
     if(name){
     //while i is less than ten, and name[i] is not zero
-      for(i=3;i<10&&name[i-3];i++)
-	toReturn.filename[i-3]=filesystem[lastFill-i];
-      toReturn.filename[i-3]=0;
+      for(i=FS_NAME_NODE_OFFSET;i<(FS_NAME_NODE_OFFSET+FS_NAME_NODE_SIZE)&&name[i-3];i++)
+	toReturn.filename[i-FS_NAME_NODE_OFFSET]=filesystem[lastFill-i];
+      toReturn.filename[i-FS_NAME_NODE_OFFSET]=0;
     }else
       toReturn.filename[0]=0;
     
-    dataLoc=filesystem[lastFill-11];//location of data
+    dataLoc=filesystem[lastFill-FS_LOCATION_NODE_OFFSET];//location of data
     toReturn.length=len;//length of data  
     
     return toReturn;
@@ -385,8 +402,9 @@ void fs_dump(){
 /**
  * Tester for the filesystem
  */
-/*void main(){
- 
+void fs_test(){
+//void main(){
+  
   printf("SIZE: %d\n",FILESYSTEM_SIZE);
   
   int a[1]={1};
@@ -397,7 +415,11 @@ void fs_dump(){
   fs_firstRun();
   fs_store(1,a,0);
   fs_store(2,b,0);
+  printf("\nfs_store(2,b,0)\n");
+  fs_dump();
   fs_store(3,c,0);
+    printf("\nfs_store(3,c,0);\n");
+  fs_dump();
   fs_store(4,d,0);
   printf("Input test\n");
   fs_list();
@@ -438,4 +460,3 @@ void fs_dump(){
   printf("\n");
  
 }
-*/
