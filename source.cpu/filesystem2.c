@@ -399,7 +399,6 @@ void fs_getFileByName(char name[FS_NAME_SIZE], int offset, int size, int* page) 
   id = fs_getFileId(name);
   
   return fs_getFile(id, offset, size, page);
-  
 }
 
 /* return id */

@@ -23,7 +23,7 @@
 
 #include "helper.c"
 #include "pagingsystem.c"
-#include "filesystem2.c"
+#include "filesystem.c"
 
 int  execute;
 
@@ -490,6 +490,12 @@ void importMemory(char* filename) {
 
 
 main(int argc, char **argv) {
+  int   sharedMemoryId;
+  char  c;
+  char* s;
+  char* sharedMemory;
+  
+  
   execute = TRUE;
 
   if(argc != 2) { 
@@ -497,6 +503,10 @@ main(int argc, char **argv) {
     exit(0);
   }
   
+  if (FS_DEBUG)
+    fs_test();
+  
+  /*
   printf("\n\n\n\n");
   starLine();
   printf("cpu starting...\n");
@@ -543,6 +553,7 @@ main(int argc, char **argv) {
     printf("\n");
   }
   lightLine();
+  */
 
   // read file into memory
   importMemory(argv[1]);
