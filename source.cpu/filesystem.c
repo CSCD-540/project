@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 #define FILESYSTEM_SIZE 1000
-#define FS_DEBUG
+#define FS_DEBUG 1
 
 int filesystem[FILESYSTEM_SIZE];
 int lastFree;//tracks last free position node
