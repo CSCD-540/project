@@ -8,6 +8,9 @@ assembler:
 	cd source.assembler; flex -d assembler.l
 	gcc -g ./source.assembler/lex.yy.c ./source.assembler/assembler.tab.c -lfl -lm -o ./compiled.assembler/assembler
 
+list:
+	clear
+	gcc ./source.cpu/listTest.c ./source.cpu/list.c ./source.cpu/inode.c  -o ./compiled.list/listTest
 
 cpu:
 	clear
@@ -32,6 +35,9 @@ run:
 
 runShell:
 	./compiled.cpu/shell
+
+listTest:
+	./compiled.list/listTest
 
 clean:
 	rm ./compiled.assembler/*
