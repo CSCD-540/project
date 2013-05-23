@@ -3,18 +3,63 @@
 #include <string.h>
 #include <errno.h>
 
+#include "sharedmemory.h"
+
 #define MAX_LENGTH 1024
 #define DELIMS " \t\r\n"
 
 int main() {
+  /* shared memory */
+  int loop;
+  int   sm_id;
+  char* sm_space;
+  
+  // locate the memory segment
+  if ((sm_id = shmget(SM_KEY, SM_SIZE, 0666)) < 0)
+    return -1;
+  
+  // attache the segment to the data space
+  if ((sm_space = shmat(sm_id, NULL, 0)) == (char*) -1)
+    return -2;
+    
+  /* end shared memory */
+  
 	char *cmd;
 	char line[MAX_LENGTH];
-	int result;
+	int  result;
 	
+  loop = TRUE;
+	
+	while(loop) {
+	  
+    printf("> ");
+    fgets(line, MAX_LENGTH, stdin);
+    printf("line: %s \n", line);
+
+    if (strncmp(line, "q", 1) == 0)
+      loop = FALSE;
+      
+  	// writes user input string to memory
+    strcpy(sm_space, line);
+    
+    // wait for CPU to respond
+    usleep(1000);
+      
+    // display response from CPU
+    printf("received: %s", sm_space);
+    
+  }
+	
+/*
 	while (1) {
 		printf("<3 ");
+
+
 		if(!fgets(line, MAX_LENGTH, stdin)) break;
 		
+		
+		
+/* temporarily commented out to implement shared memory		
 		//parse and execute command
 		if((cmd = strtok(line, DELIMS))) {
 			//clear errors
@@ -47,7 +92,12 @@ int main() {
 				perror("Command Failed");
 			}
 		} //end if
+
 	} //end while
+*/	
+	// release the shared memory
+  if(shmdt(sm_space) != 0)
+    return -3;
 	
 	return 0;
 } //end main

@@ -26,6 +26,8 @@ scheduler:
 	gcc ./source.cpu/scheduler.c -o ./compiled.cpu/scheduler
 
 shell:
+	clear
+	gcc ./source.cpu/cpu2.c -o ./compiled.cpu/cpu2
 	gcc ./source.cpu/shell.c -o ./compiled.cpu/shell
 
 # usage: make run program="prog1out"
@@ -35,6 +37,9 @@ run:
 
 runShell:
 	./compiled.cpu/shell
+
+runCPU2:
+	./compiled.cpu/cpu2
 
 listTest:
 	./compiled.list/listTest
