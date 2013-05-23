@@ -5,6 +5,8 @@
 #include <string.h>
 
 /* #defines */
+#define FS_DEBUG         1
+
 #define FS_SIZE        100
 #define FS_NAME_SIZE    16
 #define FS_INODES       10
