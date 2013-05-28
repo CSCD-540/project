@@ -14,10 +14,14 @@ list:
 
 cpu:
 	clear
-	gcc ./source.cpu/cpu.c -o ./compiled.cpu/cpu
+	gcc ./source.cpu/cpu.c ./source.cpu/filesystem2.c ./source.cpu/list.c ./source.cpu/inode.c -o ./compiled.cpu/cpu
 
 filesystem:
 	gcc ./source.cpu/filesystem.c -o ./compiled.cpu/filesystem
+
+filesystem2:
+	clear
+	gcc ./source.cpu/fs2Test.c ./source.cpu/filesystem2.c ./source.cpu/list.c ./source.cpu/inode.c ./source.cpu/helper.c -o ./compiled.cpu/fs2Test
 
 pagemanager:
 	gcc ./source.cpu/pagemanager.c -o ./compiled.cpu/pagemanager
@@ -32,6 +36,7 @@ shell:
 
 # usage: make run program="prog1out"
 run:
+	clear
 	./compiled.assembler/assembler ./programs.assembler/$(program) ./programs.cpu/$(program)
 	./compiled.cpu/cpu ./programs.cpu/$(program).cpu
 
@@ -40,6 +45,10 @@ runShell:
 
 runCPU2:
 	./compiled.cpu/cpu2
+
+fs2test:
+	clear
+	./compiled.cpu/fs2Test
 
 listTest:
 	./compiled.list/listTest

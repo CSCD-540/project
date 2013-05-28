@@ -20,7 +20,7 @@ void inode_print(void* value) {
   if (value == NULL)
     return;
   
-  printf("id: %4d \t start: %4d \t size: %4d \t name: %-16s \n", inode->id, inode->start, inode->size, inode->name);
+  printf("  id: %4d \t start: %4d \t size: %4d \t name: %-16s \n", inode->id, inode->start, inode->size, inode->name);
 }
 
 int inode_compareById(void* valueA, void* valueB) {
@@ -28,4 +28,10 @@ int inode_compareById(void* valueA, void* valueB) {
   int    id     = (int)valueB;
 
   return inodeA->id - id;
+}
+
+int inode_compareByName(void* valueA, void* valueB) {
+  INode* inodeA = (INode*)valueA;
+  
+  return strcmp(inodeA->name, (char*)valueB);
 }

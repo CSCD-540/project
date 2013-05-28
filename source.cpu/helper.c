@@ -31,3 +31,15 @@ int getInt(FILE* fp) {
   
   return i;
 }
+
+void heavyLine() {
+  printf("==============================\n");
+}
+
+void lightLine() {
+  printf("------------------------------\n");
+}
+
+void starLine() {
+  printf("******************************\n");
+}

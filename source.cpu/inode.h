@@ -12,12 +12,13 @@
     char* name;
     int   start;
     int   size;
+    int   used;
   } INode;
   
   INode* inode_create(int id, char* name, int start, int size);
   void inode_destroy(INode* inode);
   void inode_print(void* value);
   int inode_compareById(void* valueA, void* valueB);
-  
+  int inode_compareByName(void* valueA, void* valueB);
   
 #endif
