@@ -23,7 +23,7 @@
 
 #include "helper.c"
 #include "pagingsystem.c"
-#include "filesystem2.c"
+#include "filesystem2.h"
 
 int  execute;
 
@@ -467,6 +467,10 @@ void importMemory(char* filename) {
   
   FILE* fp;
   
+  starLine();
+  printf("  Importing Memory: %s \n", filename);
+  starLine();
+  
   fp = fopen(filename, "r");  
   
   getString(fp);
@@ -503,57 +507,6 @@ main(int argc, char **argv) {
     exit(0);
   }
   
-  if (FS_DEBUG)
-    fs_test();
-  
-  /*
-  printf("\n\n\n\n");
-  starLine();
-  printf("cpu starting...\n");
-  starLine();
-  printf("\n");
-  
-  fs_initialize();
-  pageTable_Initialize();
-  
-  if (DEBUG)
-    fs_test();
-  
-  heavyLine();
-  fs_import(argv[1]);
-  printf("\n");
-
-  heavyLine(); 
-  printf("displaying inodes... \n");
-  lightLine();
-  fs_dump();
-  printf("\n");
-  
-  heavyLine();
-  printf("displaying filesystem... \n");
-  lightLine();
-  fs_dumpAllData();
-  lightLine();
-  
-  int i;
-  int j;
-  
-  int tempPageSize = 5;
-  int tempPage[tempPageSize];
-  
-    
-  printf("getFile()\n");
-  printf("displaying tempPage: \n");
-  
-  for (i = 0; i < 4; i++) {
-    fs_getFile(1, i * tempPageSize, tempPageSize, tempPage);
-  
-    for (j = 0; j < tempPageSize; j++)
-      printf("%5d", tempPage[j]);
-    printf("\n");
-  }
-  lightLine();
-  */
 
   // read file into memory
   importMemory(argv[1]);
