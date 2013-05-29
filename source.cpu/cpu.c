@@ -43,7 +43,6 @@ void print_stack(int stack[][STACKSIZE],int sp[]); //debug
 void print_register(int reg[][REGISTERSIZE]); //debug
 void print_gmem();
 
-
 executeit() {
   int cur_proc;
   int p0 = 0;
@@ -70,70 +69,71 @@ executeit() {
   next_instruct[5] = 10;
 
   while(1) {
-    cont:
-      if(locked == UNLOCKED)
-        cur_proc = (pid == 1) ? 0:(rand()%(pid - 1)) + 1;
+    
+cont:
+    if(locked == UNLOCKED)
+      cur_proc = (pid == 1) ? 0:(rand()%(pid - 1)) + 1;
 
-      if(proc_complete[cur_proc] == 1) {
-        printf("----------------------------cur_proc: %d\n", cur_proc);
-        goto checkdone;
-      }
+    if(proc_complete[cur_proc] == 1) {
+      printf("----------------------------cur_proc: %d\n", cur_proc);
+      goto checkdone;
+    }
 
-      if (next_instruct[cur_proc] < endprog[cur_proc]) {
-        msg = exe(stack, sp, reg, next_instruct, next_instruct, cur_proc);
+    if (next_instruct[cur_proc] < endprog[cur_proc]) {
+      msg = exe(stack, sp, reg, next_instruct, next_instruct, cur_proc);
         
-        if(msg == ENDPROCESS)
-          proc_complete[cur_proc] = 1;
+      if(msg == ENDPROCESS)
+        proc_complete[cur_proc] = 1;
 
-        //increment next_instruction
-        next_instruct[cur_proc]++;
+      //increment next_instruction
+      next_instruct[cur_proc]++;
         
-        if(msg == UNLOCKED)
-          locked = UNLOCKED;
-        else if(msg == LOCKED || locked == LOCKED)
-          locked = LOCKED;
+      if(msg == UNLOCKED)
+        locked = UNLOCKED;
+      else if(msg == LOCKED || locked == LOCKED)
+        locked = LOCKED;
          
-        //run p0 in its entirety after a gmem write
-        //cur_proc=0;
-        while(msg == p0WRITE || p0running) {
-          p0running = 1; 
-          cur_proc = 0;
-          msg = exe(stack,sp,reg,next_instruct,next_instruct,p0);
+      //run p0 in its entirety after a gmem write
+      //cur_proc=0;
+      while(msg == p0WRITE || p0running) {
+        p0running = 1; 
+        cur_proc = 0;
+        msg = exe(stack,sp,reg,next_instruct,next_instruct,p0);
 
-          next_instruct[cur_proc]++;
+        next_instruct[cur_proc]++;
           
-          if(p0running == 0) {  
-            msg=NORMAL;
-            next_instruct[p0]=10;
-            break;
-          }
-
-          if( next_instruct[p0]>=endprog[p0]) {  
-            p0running=0;
-            sp[p0]=0;
-            next_instruct[p0]=10;
-            msg=NORMAL;
-            break;
-          }
+        if (p0running == 0) {  
+          msg=NORMAL;
+          next_instruct[p0]=10;
+          break;
         }
-        continue;
-      } else {
-        proc_complete[cur_proc]=1;
-      }
 
-      //check if all processes are done
-      checkdone:
-        for(cur_proc = 1; cur_proc < pid; cur_proc++)
-          if(proc_complete[cur_proc] == 0)
-            goto cont;
-      break;
+        if (next_instruct[p0] >= endprog[p0]) {  
+          p0running=0;
+          sp[p0]=0;
+          next_instruct[p0]=10;
+          msg=NORMAL;
+          break;
+        }
+      }
+      continue;
+    } else {
+      proc_complete[cur_proc]=1;
+    }
+
+    //check if all processes are done
+checkdone:
+    for (cur_proc = 1; cur_proc < pid; cur_proc++)
+      if (proc_complete[cur_proc] == 0)
+         goto cont;
+    //exit(0);
+    break;
   }
 
-  print_stack(stack,sp);        // stack should be all 0 and sp at -1
+  //print_stack(stack,sp);        // stack should be all 0 and sp at -1
   print_gmem();
   print_register(reg);
 }
-
 
 int exe(int stack[][STACKSIZE], int sp[], int reg[][REGISTERSIZE], int next_instruct[], int next_inst[], int cur_proc) {
   int i,k, m; 
@@ -423,7 +423,6 @@ void push(int stack[][STACKSIZE], int proc_id, int sp[], int data, int calledfro
   stack[proc_id][sp[proc_id]]=data;
 }
 
-
 //debug routines
 void print_stack(int stack[][STACKSIZE], int sp[]) {
   int i,j;
@@ -510,12 +509,11 @@ main(int argc, char **argv) {
 
   // read file into memory
   importMemory(argv[1]);
+
+  executeit();
+
+
   
-  while(TRUE) {
-    // scheduler_nextProcess();
-    executeit();
-      
-  }
   
   
   return 0;
