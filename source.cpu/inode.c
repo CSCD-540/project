@@ -1,7 +1,8 @@
 #include "inode.h"
 
-INode* inode_create(int id, char* name, int start, int size) {
+INode* inode_create(int process, int id, char* name, int start, int size) {
   INode* inode = calloc(1, sizeof(INode));
+  inode->process = process;
   inode->id = id;
   inode->name = name;
   inode->start = start;
@@ -20,7 +21,14 @@ void inode_print(void* value) {
   if (value == NULL)
     return;
   
-  printf("  id: %4d \t start: %4d \t size: %4d \t name: %-16s \n", inode->id, inode->start, inode->size, inode->name);
+  printf("  process: %4d id: %4d \t start: %4d \t size: %4d \t name: %-16s \n", inode->process, inode->id, inode->start, inode->size, inode->name);
+}
+
+int inode_compareByProcess(void* valueA, void* valueB) {
+  INode* inodeA  = (INode*)valueA;
+  int    process = (int)valueB;
+
+  return inodeA->process - process;
 }
 
 int inode_compareById(void* valueA, void* valueB) {

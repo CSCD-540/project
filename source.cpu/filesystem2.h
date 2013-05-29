@@ -6,11 +6,11 @@
 #include "inode.h"
 
 /* #defines */
-#define FS_DEBUG         1
-#define FS_VERBOSE       1
+#define FS_DEBUG         0
+#define FS_VERBOSE       0  
 
 #define FS_NULL         -1
-#define FS_DEFAULT_FILENAME   "fname"
+#define FS_DEFAULT_FILENAME   "unknown"
 
 #define FS_SIZE        100
 #define FS_NAME_SIZE    16
@@ -34,9 +34,9 @@ int fs_dataIsValid(int size, int* data);
 
 int fs_import(char* filename);
 
-int fs_addFile(char* name, int size, int* data);
+int fs_addFile(int process, char* name, int size, int* data);
 int fs_addData(int size, int* data);
-int fs_addINode(char* name, int start, int size);
+int fs_addINode(int process, char* name, int start, int size);
 
 void   fs_removeFile(int id);
 void   fs_removeAllFiles();

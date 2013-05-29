@@ -8,6 +8,7 @@
   #include "list.h"
   
   typedef struct INode {
+    int   process;
     int   id;
     char* name;
     int   start;
@@ -15,9 +16,10 @@
     int   used;
   } INode;
   
-  INode* inode_create(int id, char* name, int start, int size);
+  INode* inode_create(int process, int id, char* name, int start, int size);
   void inode_destroy(INode* inode);
   void inode_print(void* value);
+  int inode_compareByProcess(void* valueA, void* valueB);
   int inode_compareById(void* valueA, void* valueB);
   int inode_compareByName(void* valueA, void* valueB);
   

@@ -25,8 +25,6 @@
 #include "pagingsystem.c"
 #include "filesystem2.h"
 
-int  execute;
-
 int  gmem[MAXGMEM];         // global var sit here 
 int  mem[MAXPRO][MAXMEM];   // physical memory
 
@@ -492,20 +490,64 @@ void importMemory(char* filename) {
 }
 
 
-main(int argc, char **argv) {
-  int   sharedMemoryId;
-  char  c;
-  char* s;
-  char* sharedMemory;
-  
-  
-  execute = TRUE;
 
+void ls(char* s) {
+  int i;
+  int nodeCount = fs_getINodeCount();
+  INode* node[nodeCount];
+  
+  fs_getAllNodes(node);
+  
+  for (i = 0; i < nodeCount; i++) {
+    sprintf(s + strlen(s), "process: %3d   id: %3d   size: %4d \tname: %s \n", node[i]->process, node[i]->id, node[i]->size, node[i]->name);
+  }
+  
+}
+
+
+main(int argc, char **argv) {
+  int i;
+  int j;
+  int processes;
+  
   if(argc != 2) { 
     fprintf(stderr, "usage: cpu <input> \n");
     exit(0);
   }
+
+
+  printf("\n\n\n");
+    
+  heavyLine();
+  printf("cpu.c started...\n");
+  heavyLine();
   
+  fs_initialize();
+  
+  // read program into filesystem
+  processes = fs_import(argv[1]);
+  
+  
+  /*
+  int* temp;
+  
+  temp = fs_getData(1);
+  for (i = 0; i < 20; i++)
+    mem[1][i] = temp[i];
+
+  temp = fs_getData(2);
+  for (i = 0; i < 40; i++)
+    mem[2][i] = temp[i];
+    
+  
+  // initial file listing
+  char* s;
+  // TODO: #define string size
+  s = calloc(132, sizeof(char));
+  ls(s);
+  printf("file listing: \n%s\n", s);
+  free(s);
+  */
 
   // read file into memory
   importMemory(argv[1]);
