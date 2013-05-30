@@ -23,8 +23,9 @@ filesystem2:
 	clear
 	gcc ./source.cpu/fs2Test.c ./source.cpu/filesystem2.c ./source.cpu/list.c ./source.cpu/inode.c ./source.cpu/helper.c -o ./compiled.cpu/fs2Test
 
-pagemanager:
-	gcc ./source.cpu/pagemanager.c -o ./compiled.cpu/pagemanager
+pagetable:
+	clear
+	gcc ./source.cpu/ptTest.c ./source.cpu/pagetable.c ./source.cpu/helper.c -o ./compiled.cpu/ptTest
 
 scheduler:
 	gcc ./source.cpu/scheduler.c -o ./compiled.cpu/scheduler
@@ -49,6 +50,10 @@ runCPU2:
 fs2test:
 	clear
 	./compiled.cpu/fs2Test
+
+pttest:
+	clear
+	./compiled.cpu/ptTest
 
 listTest:
 	./compiled.list/listTest

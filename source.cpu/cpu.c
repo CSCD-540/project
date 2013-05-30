@@ -18,11 +18,13 @@
 #define ENDPROCESS 3
 #define p0WRITE 4         // tells p0 to run-p0 should only run after a write to gmem
 
+#define PAGE_SIZE 4
+
 #define FALSE 0
 #define TRUE 1
 
 #include "helper.c"
-#include "pagingsystem.c"
+#include "pagetable.h"
 #include "filesystem2.h"
 
 int  gmem[MAXGMEM];         // global var sit here 
@@ -528,7 +530,7 @@ main(int argc, char **argv) {
   processes = fs_import(argv[1]);
   
   
-  /*
+  
   int* temp;
   
   temp = fs_getData(1);
@@ -547,7 +549,7 @@ main(int argc, char **argv) {
   ls(s);
   printf("file listing: \n%s\n", s);
   free(s);
-  */
+  
 
   // read file into memory
   importMemory(argv[1]);

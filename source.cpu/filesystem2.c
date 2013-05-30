@@ -1,5 +1,8 @@
 #include "filesystem2.h"
 
+// TODO: migrate away from id to process as primary identifier
+// TODO: fs_getProcessSize(int process)
+
 /* global variables */
 int fs_idCounter;
 int filesystem[FS_SIZE];
