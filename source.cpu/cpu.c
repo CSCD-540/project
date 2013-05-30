@@ -577,7 +577,7 @@ main(int argc, char **argv) {
   processes = fs_import(argv[1]);
   
   
-  
+
   int* temp;
   
   temp = fs_getData(1);
@@ -588,7 +588,7 @@ main(int argc, char **argv) {
   for (i = 0; i < 40; i++)
     mem[2][i] = temp[i];
     
-  
+  /*  
   // initial file listing
   char* s;
   // TODO: #define string size
@@ -596,7 +596,7 @@ main(int argc, char **argv) {
   ls(s);
   printf("file listing: \n%s\n", s);
   free(s);
-  
+  */
 
   // read file into memory
   importMemory(argv[1]);

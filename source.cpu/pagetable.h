@@ -6,7 +6,7 @@
 #define PT_DEBUG   1
 
 #define MAXPRO     6
-#define MAXMEM    16
+//#define MAXMEM    16
 
 #define PAGE_SIZE  4
 
