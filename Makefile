@@ -14,7 +14,7 @@ list:
 
 cpu:
 	clear
-	gcc ./source.cpu/cpu.c ./source.cpu/filesystem2.c ./source.cpu/list.c ./source.cpu/inode.c -o ./compiled.cpu/cpu
+	gcc ./source.cpu/scheduler.c ./source.cpu/cpu.c ./source.cpu/filesystem2.c ./source.cpu/list.c ./source.cpu/inode.c -o ./compiled.cpu/cpu
 
 filesystem:
 	gcc ./source.cpu/filesystem.c -o ./compiled.cpu/filesystem

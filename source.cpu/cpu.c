@@ -4,6 +4,7 @@
 
 
 #include "cpu.tab.h"
+#include "scheduler.h"
 
 #define DEBUG 0
 
@@ -139,6 +140,30 @@ int exe(int stack[][STACKSIZE], int sp[], int reg[][REGISTERSIZE], int next_inst
   char name[11];
 
   i = next_inst[cur_proc];
+  
+  
+   /*
+   * TODO:
+   * when open, read or write case is called need to call scheduler
+   * and suspend the process.
+   * 
+   * Need to read over the case statements to find out where to
+   * insert the scheduler call.
+   * 
+   * Also I think the process should be suspended for around
+   * 30 ~ 50 cycles.
+   * 
+   * Will need to call timedown() in each case statement to make sure
+   * that the processes in the suspended queue can reduce time and
+   * get out of the queue.
+   * 
+   * Once process is suspended how to move on to the next process
+   * and how to get the suspended process back into the cpu process
+   * queue rotation.
+   */
+  
+  
+  
 
   switch (mem[cur_proc][i]) {
     /** OPEN, READ, CLOSE, WRITE, SEEK ::  OS services **/
@@ -152,6 +177,21 @@ int exe(int stack[][STACKSIZE], int sp[], int reg[][REGISTERSIZE], int next_inst
       printf("filename passed = %s\n", name);
       printf("OS service call  --- <OPEN>  return file descriptor!(987 is fake)\n");
       push(stack, cur_proc, sp, 987, 11); // dummy fd =987 
+      
+       //I think that the call to scheduler should be here.
+      //Also the timedown() call.
+      
+      printf("\nprocess going to suspended\n");
+      heavyLine();
+      
+      
+      scheduler_nextProcess(cur_proc, TIMEOUT_OPEN);
+      
+      //printf("\nprocess suspended\n");
+      //heavyLine();
+      scheduler_timedown();
+      
+      
       break;
       
     case READ :
@@ -159,6 +199,13 @@ int exe(int stack[][STACKSIZE], int sp[], int reg[][REGISTERSIZE], int next_inst
       printf("READ,  file descriptor=%d\n", tmp); 
       printf("OS service call  --- <READ> return int read (777 is fake)\n");
       push(stack,cur_proc,sp, 777, 13); // dummy fd =777 
+      
+              //I think that the call to scheduler should be here.
+      //Also the timedown() call.
+      
+      //scheduler_timedown();
+      
+      
       break;
 
     case CLOSE :
