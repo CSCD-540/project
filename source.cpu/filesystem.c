@@ -54,10 +54,12 @@ int waste;//tracks wasted space, ie space that is too small for header data, thi
 
 /**
  * TODO
- * change inode.filename to char* instead of int* also make 16 characters
- * take info from importmemory in cpu.c and put in firstRun
  * add support ot append to file (need to add to freeList)
  * move interface items to different file
+ * implement free node array
+ * create defragmenter
+ * take info from importmemory in cpu.c and put in firstRun
+ * change inode.filename to char* instead of int* also make 16 characters
  */
 
 //run only once, ever. Sets up filesystem parameters
@@ -169,19 +171,19 @@ void fs_addFree(int index){
   }else{
     filesystem[lastFree-FS_NEXT_NODE_OFFSET]=index;//next of prev
     filesystem[index]=lastFree;//prev
-    filesystem[index-FS_NEXT_NODE_OFFSET]=0;//next
+    filesystem[index-FS_NEXT_NODE_OFFSET]=0;//no next
   }
    
     lastFree=index;
     loc=filesystem[lastFree-FS_LOCATION_NODE_OFFSET];
     filesystem[lastFree-FS_DATA_NODE_OFFSET]=filesystem[loc+FS_SIZE_REC_OFFSET];//size of available free space (minus header info) 
-    filesystem[FILESYSTEM_SIZE-4]=lastFree; 
+    filesystem[FILESYSTEM_SIZE-4]=lastFree;
 }
 
 /**
  * Removes an record with fid from filesystem
  * Version1: Removes it **Done**
- * Version2: makes record of it in LastFree
+ * Version2: makes record of it in LastFree **Done**
  */
 void fs_delete(int fid){
   //in case not initialized already
@@ -194,9 +196,8 @@ void fs_delete(int fid){
   while(hasPrev){
     //check for match
     if(filesystem[hasPrev-FS_DATA_NODE_OFFSET]==fid){
-      
+            
       //if lastFill is being removed, set lastFill to prev
-
       if(lastFill==hasPrev){
 	lastFill=filesystem[lastFill];
         filesystem[FILESYSTEM_SIZE-5]=lastFill;
@@ -215,6 +216,8 @@ void fs_delete(int fid){
 	  filesystem[prev-FS_NEXT_NODE_OFFSET]=next;
 	}
       }
+      //add index to be removed to lastFree list
+      fs_addFree(hasPrev);
       break;
     }
     hasPrev=filesystem[hasPrev];
@@ -223,8 +226,10 @@ void fs_delete(int fid){
 }
 
 /**
- * Version 1:List fids of files
- * Version 2:???
+ * Version 1:List fids of files **done**
+ * Version 2:List all size of deleted partitions **done**
+ * 
+ * Note: Can be shortened, but not critical to do so.
  */
 void fs_list(){
   
@@ -233,8 +238,16 @@ void fs_list(){
  
   int hasPrev=lastFill;
   
+  printf("Filled list:\n");
   while(hasPrev){
     printf("FID: %d\n",filesystem[hasPrev-FS_DATA_NODE_OFFSET]);
+    hasPrev=filesystem[hasPrev];
+  }
+  
+  hasPrev=lastFree;
+  printf("Free list:\n");
+  while(hasPrev){
+    printf("Size: %d\n",filesystem[hasPrev-FS_DATA_NODE_OFFSET]);
     hasPrev=filesystem[hasPrev];
   }
 }
@@ -432,6 +445,10 @@ void fs_test(){
   fs_delete(3);
   printf("end delete test\n");
   fs_list();  
+  fs_delete(1);
+  printf("delete last item\n");
+  fs_list();
+
   
   int e[5]={1,2,3,4,5};
   int length;
@@ -447,7 +464,6 @@ void fs_test(){
   
   fs_list_intf(testArr, length);
   printf("testArr.fid=%d\ntestArr.filename=%p\ntestArr.length=%d\n", testArr[0].fid, testArr[0].filename, testArr[0].length);
-  
   
   fs_get_intf(1,0,1,buf);
   int i;
