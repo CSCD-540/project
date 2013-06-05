@@ -4,6 +4,7 @@ all: cpu filesystem pagemanager scheduler shell
 
 
 assembler:
+	clear
 	cd source.assembler; bison -v -t -d assembler.y
 	cd source.assembler; flex -d assembler.l
 	gcc -g ./source.assembler/lex.yy.c ./source.assembler/assembler.tab.c -lfl -lm -o ./compiled.assembler/assembler
@@ -21,11 +22,11 @@ filesystem:
 
 filesystem2:
 	clear
-	gcc ./source.cpu/fs2Test.c ./source.cpu/filesystem2.c ./source.cpu/list.c ./source.cpu/inode.c ./source.cpu/helper.c -o ./compiled.cpu/fs2Test
+	gcc ./source.cpu/config.c ./source.cpu/fs2Test.c ./source.cpu/filesystem2.c ./source.cpu/list.c ./source.cpu/inode.c -o ./compiled.cpu/fs2Test
 
 pagetable:
 	clear
-	gcc ./source.cpu/ptTest.c ./source.cpu/config.c ./source.cpu/filesystem2.c ./source.cpu/list.c ./source.cpu/inode.c ./source.cpu/pagetable.c ./source.cpu/helper.c -o ./compiled.cpu/ptTest
+	gcc ./source.cpu/config.c ./source.cpu/ptTest.c ./source.cpu/filesystem2.c ./source.cpu/list.c ./source.cpu/inode.c ./source.cpu/pagetable.c -o ./compiled.cpu/ptTest
 
 scheduler:
 	gcc ./source.cpu/scheduler.c -o ./compiled.cpu/scheduler

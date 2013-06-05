@@ -1,51 +1,45 @@
-/* includes */
-#include <stdlib.h>
-#include <string.h>
+#ifndef FILESYSTEM2_H_INCLUDED
+  #define FILESYSTEM2_H_INCLUDED
+  
+  /* includes */
+  #include <stdlib.h>
+  #include <stdio.h>
+  #include <string.h>
 
-#include "list.h"
-#include "inode.h"
+  #include "config.h"
+  #include "inode.h"
 
-/* #defines */
-#define FS_DEBUG         0
-#define FS_VERBOSE       0  
+  /* global variables */
+  int fs_idCounter;
+  int filesystem[FS_SIZE];
+  List* iNodes;
 
-#define FS_NULL         -1
-#define FS_DEFAULT_FILENAME   "unknown"
 
-#define FS_SIZE        100
-#define FS_NAME_SIZE    16
-#define FS_INODES       10
+  void fs_initialize();
+  void fs_close() ;
 
-#define FS_COLUMNS      20
+  void fs_dump();
+  void fs_dumpData(int size, int* data);
+  void fs_dumpAllData();
 
-#define PAGE_SIZE        4
+  int fs_dataIsValid(int size, int* data);
 
-#define true 1;
-#define false 0;
+  int fs_import(char* filename, char* name);
 
-/* prototypes */
-void fs_initialize();
-void fs_close();
+  int fs_addFile(char* name, int fileSize, int processes, int* processStart, int* processSize, int* data);
+  int fs_addData(int size, int* data);
+  int fs_addINode(char* name, int fileStart, int fileSize, int processes, int* processStart, int* processSize);
 
-void fs_dump();
-void fs_dumpData(int size, int* data);
-void fs_dumpAllData();
-int fs_dataIsValid(int size, int* data);
+  void fs_removeFile(int id);
+  void fs_removeAllFiles();
 
-int fs_import(char* filename);
+  INode* fs_getNode(int id);
+  void fs_getAllNodes(INode *nodes[]);
+  int* fs_getData(int id);
+  int* fs_getPage(int id, int process, int start, int size);
+  int fs_getINodeCount();
 
-int fs_addFile(int process, char* name, int size, int* data);
-int fs_addData(int size, int* data);
-int fs_addINode(int process, char* name, int start, int size);
+  void fs_ls();
+  void fs_copy(char* name, char* newName);
 
-void   fs_removeFile(int id);
-void   fs_removeAllFiles();
-
-INode* fs_getNode(int id);
-int*   fs_getData(int id);
-int*   fs_getPage(int id, int start, int size);
-
-int    fs_getINodeCount();
-
-void   fs_ls();
-void   fs_copy(char* name, char* newName);
+#endif

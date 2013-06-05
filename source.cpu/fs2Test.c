@@ -1,5 +1,6 @@
+#include "config.h"
 #include "filesystem2.h"
-#include "helper.h"
+
 
 #define TEST_FILES        4
 #define TEST_DATA_SIZE   30
@@ -9,6 +10,7 @@
 int main() {
   int i;
   int j;
+  int k;
   
   heavyLine();
   printf("filesystem self test\n");
@@ -17,20 +19,14 @@ int main() {
 
   fs_initialize();
   
-  int testData[TEST_DATA_SIZE];
-
-  // creating test data
-  for (i = 0; i < TEST_DATA_SIZE; i++)
-    testData[i] = 100 + i;
-  
-  // add test data
-  for (i = 0; i < TEST_FILES; i++) {
-    fs_addFile("test file", TEST_DATA_SIZE, testData);
-  }
+  // import programs
+  fs_import("./programs.cpu/prog1out.cpu", "prog1");
+  fs_import("./programs.cpu/prog2out.cpu", "prog2");
   
   // list the files
   fs_ls();
-  
+
+
   // remove file with id of 2
   fs_removeFile(2);
 
@@ -38,17 +34,18 @@ int main() {
 
   // list the files
   fs_ls();
-  
+    
   // invalid data
   int invalidData[3] = {FS_NULL, FS_NULL, FS_NULL};
   
   // add invalid data
-  fs_addFile("invalid data", 3, invalidData);
+  int pStart[1] = {0};
+  int pSize[1] = {3};
+  fs_addFile("invalid data", 3, 1, pStart, pSize, invalidData);
 
   // list the files
   fs_ls();
-
-  fs_addFile("test data", TEST_DATA_SIZE, testData);
+  fs_import("./programs.cpu/prog3out.cpu", "prog2");
   
   // list the files
   fs_ls();
@@ -58,34 +55,45 @@ int main() {
 
   // list the files
   fs_ls();
-  
-  fs_import("./programs.cpu/prog1out.cpu");
+
+  fs_import("./programs.cpu/prog1out.cpu", "prog1");
+  fs_import("./programs.cpu/prog2out.cpu", "prog2");
+  fs_import("./programs.cpu/prog3out.cpu", "prog3");
+  fs_import("./programs.cpu/prog4out.cpu", "prog4");
+
   
   fs_ls();
-  
-  fs_copy("fname", "fname2");
+  fs_removeFile(6);
+  fs_dumpAllData();
+
+  fs_ls();  
+  fs_copy("prog1", "progA");
   
   fs_ls();
 
-  int pages;
-  int* d;
+  // testing paging
+
   INode* node;
-  
-  node = (INode*)fs_getNode(7);
-  inode_print(node);
-  
-  pages = node->size / PAGE_SIZE;
-  if (node->size % PAGE_SIZE != 0)
-    pages++;
-  
-  for (i = 0; i < pages; i++) {
-    d = (int*)fs_getPage(7, i * PAGE_SIZE, PAGE_SIZE);
-    printf("page: %d \n", i);
-    for (j = 0; j < 4; j++)
-      printf("\tdata: %d ", d[j]);
-    printf("\n");
-    free(d);
+  node = (INode*)fs_getNode(4);
+
+  int* page;
+
+  page = calloc(PAGE_SIZE, sizeof(int));
+
+  for (i = 0; i < node->processes; i++) {
+    heavyLine();
+    printf("process: %d \n", i);
+    for (j = 0; j < (node->processSize[i] / PAGE_SIZE); j++) {
+      page = fs_getPage(4, i, j * PAGE_SIZE, PAGE_SIZE);
+      for (k = 0; k < PAGE_SIZE; k++)
+        printf("%4d ", page[k]);
+      printf("\n");
+    }
   }
+  heavyLine();
+  
+
+
   
   fs_close();
 

@@ -2,7 +2,6 @@
 #include <stdlib.h>
 
 #include "config.h"
-#include "helper.h"
 
 #define PT_DEBUG   1
 

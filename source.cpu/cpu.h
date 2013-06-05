@@ -3,7 +3,6 @@
 #include <string.h>
 
 #include "config.h"
-#include "helper.c"
 
 #include "cpu.tab.h"
 

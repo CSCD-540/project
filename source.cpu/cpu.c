@@ -512,7 +512,7 @@ void ls(char* s) {
   fs_getAllNodes(node);
   
   for (i = 0; i < nodeCount; i++) {
-    sprintf(s + strlen(s), "process: %3d   id: %3d   size: %4d \tname: %s \n", node[i]->process, node[i]->id, node[i]->size, node[i]->name);
+    sprintf(s + strlen(s), "id: %3d   name: %16s  fileSize: %4d  \n", node[i]->id, node[i]->name, node[i]->fileSize);
   }
   
 }
@@ -538,7 +538,7 @@ main(int argc, char **argv) {
   fs_initialize();
   
   // read program into filesystem
-  processes = fs_import(argv[1]);
+  processes = fs_import(argv[1], "prog");
   
   
 
