@@ -1,12 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "config.h"
 #include "helper.h"
 
 #define PT_DEBUG   1
-
-#define MAXPRO     6
-//#define MAXMEM    16
 
 #define PAGE_SIZE  4
 
@@ -14,8 +12,12 @@
 
 void pt_initialize();
 void pt_dump();
-/*
-void pt_loadPage(int process, int page);
-int  pt_evictPage(int process);
-int  pt_getVirtualPage(int process, int page);
-*/
+
+int pt_getPageNumber(int instruction);
+int pt_getPageOffset(int instruction);
+int pt_getPage(int process, int vPage);
+int pt_requestInstruction(int process, int vAddress);
+int pt_evictPage(int process);
+int pt_loadPage(int process, int page);
+
+

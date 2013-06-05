@@ -14,7 +14,7 @@ list:
 
 cpu:
 	clear
-	gcc ./source.cpu/scheduler.c ./source.cpu/cpu.c ./source.cpu/filesystem2.c ./source.cpu/list.c ./source.cpu/inode.c -o ./compiled.cpu/cpu
+	gcc ./source.cpu/cpu.c ./source.cpu/config.c ./source.cpu/scheduler.c ./source.cpu/filesystem2.c ./source.cpu/list.c ./source.cpu/inode.c -o ./compiled.cpu/cpu
 
 filesystem:
 	gcc ./source.cpu/filesystem.c -o ./compiled.cpu/filesystem
@@ -25,7 +25,7 @@ filesystem2:
 
 pagetable:
 	clear
-	gcc ./source.cpu/ptTest.c ./source.cpu/pagetable.c ./source.cpu/helper.c -o ./compiled.cpu/ptTest
+	gcc ./source.cpu/ptTest.c ./source.cpu/config.c ./source.cpu/filesystem2.c ./source.cpu/list.c ./source.cpu/inode.c ./source.cpu/pagetable.c ./source.cpu/helper.c -o ./compiled.cpu/ptTest
 
 scheduler:
 	gcc ./source.cpu/scheduler.c -o ./compiled.cpu/scheduler

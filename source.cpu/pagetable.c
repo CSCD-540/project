@@ -1,5 +1,6 @@
 #include "pagetable.h"
 
+extern int mem[MAXPRO][MAXMEM];
 
 int pt[MAXPRO][MAXMEM / PAGE_SIZE];     // inverted page table
 int ptCount[MAXPRO][MAXMEM / PAGE_SIZE];  // used to track the last time a page was used
@@ -50,62 +51,37 @@ int pt_getPageOffset(int instruction) {
   return instruction % PAGE_SIZE;
 }
 
-int pt_getPage(int vPage) {
+int pt_getPage(int process, int vPage) {
   int i;
   
   for (i = 0; i < pages; i++)
-    if (pt[i] == vPage)
+    if (pt[process][i] == vPage)
       return i;
   
   return PT_MISS;
 }
 
-int pt_requestInstruction(int process, int instruction) {
-  int vpage;
+int pt_requestInstruction(int process, int vAddress) {
+  int vPage;
   int pPage;
   int offset;
-  int address;
+  int pAddress;
   
-  vpage  = pt_getPageNumber(instruction);  
-  offset = pt_getPageOffset(instruction);
-  pPage  = pt_getPage(page);
+  vPage  = pt_getPageNumber(vAddress);  
+  offset = pt_getPageOffset(vAddress);
+  pPage  = pt_getPage(process, vPage);
 
-  if (pPage == PT_MISS) {
-    pt_evictPage(process);
-    pPage = pt_loadPage(process, page);
-  }
+  if (pPage == PT_MISS)
+    pPage = pt_loadPage(process, vPage);
   
-  address = (pPage * PAGE_SIZE) + offset;
+  pAddress = (pPage * PAGE_SIZE) + offset;
   
-  return mem[process][address];
-
+  return mem[process][pAddress];
 }
 
-
-/*
-
-void pt_loadPage(int process, int page) {
-  int virtualPage;
-  
-  virtualPage = pt_EvictPage(process);
-  pt[process][virtualPage] = page;
-  ptLRU[process][virtualPage] = ptCounter++;
-}
-
-// -1 indicates page fault
-int pt_getVirtualPage(int process, int page) {
-  int virtualPage = -1;
-  int i;
-  
-  for (i = 0; i < PT_VIRTUAL_PAGES; i++) 
-    if (pt[process][i] == page)
-      virtualPage = i;
-  
-  return i;
-  
-}
 
 int pt_evictPage(int process) {
+  /*
   int i;
   int virtualPage = -1;
   int min = ptCounter;
@@ -123,5 +99,32 @@ int pt_evictPage(int process) {
     }
   
   return virtualPage;
+  */ 
+  return -1;
 }
-*/
+
+
+int pt_loadPage(int process, int page) {
+  /*
+  int virtualPage;
+  
+  virtualPage = pt_EvictPage(process);
+  pt[process][virtualPage] = page;
+  ptLRU[process][virtualPage] = ptCounter++;
+}
+
+// -1 indicates page fault
+int pt_getVirtualPage(int process, int page) {
+  int virtualPage = -1;
+  int i;
+  
+  for (i = 0; i < PT_VIRTUAL_PAGES; i++) 
+    if (pt[process][i] == page)
+      virtualPage = i;
+  
+  return i;
+  */
+  return -1;
+}
+
+

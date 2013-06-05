@@ -1,48 +1,12 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "cpu.h"
 
-
-#include "cpu.tab.h"
-#include "scheduler.h"
-
-#define DEBUG 0
-
-#define MAXPRO 6          // max num of processes
-#define MAXMEM 200        // max size of a process
-#define STACKSIZE 100     // max size of the stack
-#define REGISTERSIZE 10   // size of each process registers
-#define MAXGMEM 20        // max size of global memory
-#define NORMAL 0          // denotes a normal return from exe()
-#define LOCKED 1          // stops process switching until unlock
-#define UNLOCKED 2        // remove lock
-#define ENDPROCESS 3
-#define p0WRITE 4         // tells p0 to run-p0 should only run after a write to gmem
-
-#define PAGE_SIZE 4
-
-#define FALSE 0
-#define TRUE 1
-
-#include "helper.c"
-#include "pagetable.h"
-#include "filesystem2.h"
-
-int  gmem[MAXGMEM];         // global var sit here 
-int  mem[MAXPRO][MAXMEM];   // physical memory
+extern int  gmem[MAXGMEM];         // global var sit here 
+extern int  mem[MAXPRO][MAXMEM];   // physical memory
 
 int  endprog[MAXPRO];       // last instruction of proc
 int  pid = 0;               // current process id
 
 int  p0running;
-
-/* prototypes */
-int exe(int stack[][STACKSIZE], int sp[], int reg[][REGISTERSIZE], int next_instruct[], int next_inst[], int cur_proc);
-int pop(int stack[][STACKSIZE], int proc_id, int sp[], int calledfrom);
-void push(int stack[][STACKSIZE], int proc_id, int sp[],int data, int calledfrom);
-void print_stack(int stack[][STACKSIZE],int sp[]); //debug
-void print_register(int reg[][REGISTERSIZE]); //debug
-void print_gmem();
 
 executeit() {
   int cur_proc;
