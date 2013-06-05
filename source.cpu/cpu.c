@@ -521,7 +521,7 @@ void ls(char* s) {
 main(int argc, char **argv) {
   int i;
   int j;
-  int processes;
+  int id;
   
   if(argc != 2) { 
     fprintf(stderr, "usage: cpu <input> \n");
@@ -538,10 +538,10 @@ main(int argc, char **argv) {
   fs_initialize();
   
   // read program into filesystem
-  processes = fs_import(argv[1], "prog");
+  id = fs_import(argv[1], "prog");
   
   
-
+/*
   int* temp;
   
   temp = fs_getData(1);
