@@ -15,7 +15,7 @@ list:
 
 cpu:
 	clear
-	gcc ./source.cpu/cpu.c ./source.cpu/config.c ./source.cpu/scheduler.c ./source.cpu/filesystem2.c ./source.cpu/list.c ./source.cpu/inode.c -o ./compiled.cpu/cpu
+	gcc ./source.cpu/cpu.c ./source.cpu/config.c ./source.cpu/scheduler.c ./source.cpu/pagetable.c ./source.cpu/filesystem2.c ./source.cpu/list.c ./source.cpu/inode.c -o ./compiled.cpu/cpu
 
 filesystem:
 	gcc ./source.cpu/filesystem.c -o ./compiled.cpu/filesystem
@@ -37,10 +37,13 @@ shell:
 	gcc ./source.cpu/shell.c -o ./compiled.cpu/shell
 
 # usage: make run program="prog1out"
-run:
+compile:
 	clear
 	./compiled.assembler/assembler ./programs.assembler/$(program) ./programs.cpu/$(program)
-	./compiled.cpu/cpu ./programs.cpu/$(program).cpu
+
+run:
+	clear
+	./compiled.cpu/cpu
 
 runShell:
 	./compiled.cpu/shell

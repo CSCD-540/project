@@ -151,7 +151,7 @@ int pt_loadPage(int process, int virtualPageId) {
 }
 
 // returns the requested instruction
-int pt_requestInstruction(int process, int virtualAddress) {
+int pt_getInstruction(int process, int virtualAddress) {
   int physicalAddress;
   
   int virtualPage;
@@ -171,16 +171,18 @@ int pt_requestInstruction(int process, int virtualAddress) {
   physicalPage = pt_getPage(process, virtualPage);
   offset       = pt_getPageOffset(virtualAddress);
   
-  if (physicalPage == PT_MISS) {
+  if (physicalPage == PT_MISS) 
     physicalPage = pt_loadPage(process, virtualPage);
-    dumpData(MAXMEM, mem[0]);
-  }
+
   
   physicalAddress = (physicalPage * PAGE_SIZE) + offset;
   instruction = mem[process][physicalAddress];
 
-  lightLine();
-  printf("instruction: %d\n", instruction);
-  lightLine();
+  if (PT_DEBUG) {
+    lightLine();
+    printf("instruction: %d\n", instruction);
+    lightLine();
+  }
+  
   return instruction;  
 }

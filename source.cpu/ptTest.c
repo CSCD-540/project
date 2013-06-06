@@ -31,19 +31,19 @@ int main() {
   currentProcess = 0;
   
   for (i = 0; i < fs_getProcessSize(currentProgramId, currentProcess); i++) {
-    printf("instruction: %d \n", pt_requestInstruction(currentProcess, i));
+    printf("instruction: %d \n", pt_getInstruction(currentProcess, i));
   }
   
   starLine();
   currentProcess = 1;
   for (i = 0; i < fs_getProcessSize(currentProgramId, currentProcess); i++) {
-    printf("instruction: %d \n", pt_requestInstruction(currentProcess, i));
+    printf("instruction: %d \n", pt_getInstruction(currentProcess, i));
   }
   
   starLine();
   currentProcess = 2;
   for (i = 0; i < fs_getProcessSize(currentProgramId, currentProcess); i++) {
-    printf("instruction: %d \n", pt_requestInstruction(currentProcess, i));
+    printf("instruction: %d \n", pt_getInstruction(currentProcess, i));
   }
   
   pt_dump();

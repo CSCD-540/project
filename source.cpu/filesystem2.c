@@ -70,6 +70,7 @@ int fs_import(char* filename, char* name) {
   int i;
   int j;
   
+  int id;
   int fileSize;
   int processes;
   int processStart[MAXPRO];
@@ -105,10 +106,11 @@ int fs_import(char* filename, char* name) {
   if (FS_VERBOSE)
     dumpData(fileSize, data);
   
-  fs_addFile(name, fileSize, processes, processStart, processSize, data);
+  id = fs_addFile(name, fileSize, processes, processStart, processSize, data);
   
+  fclose(fp);
   
-  fclose(fp);  
+  return id;
 }
 
 

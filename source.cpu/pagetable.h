@@ -12,7 +12,7 @@ void pt_dump();
 int pt_getPageNumber(int instruction);
 int pt_getPageOffset(int instruction);
 int pt_getPage(int process, int vPage);
-int pt_requestInstruction(int process, int vAddress);
+int pt_getInstruction(int process, int vAddress);
 int pt_evictPage(int process);
 int pt_loadPage(int process, int page);
 

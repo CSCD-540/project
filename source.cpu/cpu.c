@@ -2,6 +2,7 @@
 
 extern int  gmem[MAXGMEM];         // global var sit here 
 extern int  mem[MAXPRO][MAXMEM];   // physical memory
+extern int  currentProgramId;
 
 int  endprog[MAXPRO];       // last instruction of proc
 int  pid = 0;               // current process id
@@ -131,7 +132,7 @@ int exe(int stack[][STACKSIZE], int sp[], int reg[][REGISTERSIZE], int next_inst
   
   
 
-  switch (mem[cur_proc][i]) {
+  switch (pt_getInstruction(cur_proc, i)) {
     /** OPEN, READ, CLOSE, WRITE, SEEK ::  OS services **/
     case OPEN :
       tmp = peek(stack, cur_proc, sp, 0) ;
@@ -139,7 +140,7 @@ int exe(int stack[][STACKSIZE], int sp[], int reg[][REGISTERSIZE], int next_inst
       tmp1 = peek(stack, cur_proc, sp, -1) ;
       printf("OPEN offset= -1,  data=%d\n", tmp1); 
       i = 0;
-      while ( name[i] =  mem[cur_proc][tmp1+i++] );
+      while ( name[i] =  pt_getInstruction(cur_proc, tmp1+i++) );
       printf("filename passed = %s\n", name);
       printf("OS service call  --- <OPEN>  return file descriptor!(987 is fake)\n");
       push(stack, cur_proc, sp, 987, 11); // dummy fd =987 
@@ -197,7 +198,7 @@ int exe(int stack[][STACKSIZE], int sp[], int reg[][REGISTERSIZE], int next_inst
       break;
 
     case POPD : 
-      tmp = mem[cur_proc][i+1];
+      tmp = pt_getInstruction(cur_proc, i+1);
       tmp1 = pop(stack, cur_proc, sp, 10) ;
       if(tmp < 230) {   
         gmem[tmp]=tmp1;
@@ -219,14 +220,14 @@ int exe(int stack[][STACKSIZE], int sp[], int reg[][REGISTERSIZE], int next_inst
       break;
 
     case LA : 
-      tmp = mem[cur_proc][i + 1];
+      tmp = pt_getInstruction(cur_proc, i + 1);
       //load address of start of array
       push(stack,cur_proc,sp,tmp, 17);
       next_inst[cur_proc]++;
       break; 
     
     case LOAD : 
-      tmp = mem[cur_proc][i + 1];
+    tmp = pt_getInstruction(cur_proc, i+1);
       if (tmp < 230)
         tmp1 = gmem[tmp];
       else {
@@ -238,7 +239,7 @@ int exe(int stack[][STACKSIZE], int sp[], int reg[][REGISTERSIZE], int next_inst
       break;
 
     case LOADI : 
-      push(stack, cur_proc, sp, mem[cur_proc][i + 1], 21); 
+      push(stack, cur_proc, sp, pt_getInstruction(cur_proc, i + 1), 21); 
       next_inst[cur_proc]++;
       break;
     
@@ -348,7 +349,7 @@ int exe(int stack[][STACKSIZE], int sp[], int reg[][REGISTERSIZE], int next_inst
     
     case STOR: 
       tmp = pop(stack, cur_proc, sp, 68);
-      tmp1 = mem[cur_proc][i + 1];
+      tmp1 = pt_getInstruction(cur_proc, i + 1);
       if(tmp1 < 230) {
         gmem[tmp1]=tmp;
         printf("Process %d wrote to global mem in index %d, %d\n",cur_proc,tmp1,gmem[tmp1]);
@@ -383,7 +384,7 @@ int exe(int stack[][STACKSIZE], int sp[], int reg[][REGISTERSIZE], int next_inst
       
     case JFALSE: 
       tmp = pop(stack, cur_proc, sp, 74);
-      tmp2 = mem[cur_proc][i + 1];
+      tmp2 = pt_getInstruction(cur_proc, i + 1);
       if (tmp == 0)
         next_instruct[cur_proc] = tmp2 - 1; //sub one for PC in executeit()
       else 
@@ -391,13 +392,13 @@ int exe(int stack[][STACKSIZE], int sp[], int reg[][REGISTERSIZE], int next_inst
       break;
       
     case JMP: 
-      tmp = mem[cur_proc][i + 1];
+      tmp = pt_getInstruction(cur_proc, i + 1);
       next_instruct[cur_proc] = tmp - 1; //sub one for PC in executeit() 
       break;
 
     default:
       printf("illegal instruction mem[%d][%d]\n", cur_proc, i);
-      printf("(%04d:   %d)\n", i, mem[cur_proc][i]);  
+      printf("(%04d:   %d)\n", i, pt_getInstruction(cur_proc, i));  
       break;
 
   }
@@ -469,40 +470,13 @@ void print_register(int reg[][REGISTERSIZE]) {
   }
 }
 
-// TODO: convert to paging
-void importMemory(char* filename) {
+void loadProgram(int programId) {
   int i;
-  int j;
-  int process;
   
-  FILE* fp;
-  
-  starLine();
-  printf("  Importing Memory: %s \n", filename);
-  starLine();
-  
-  fp = fopen(filename, "r");  
-  
-  getString(fp);
-  pid = getInt(fp);
-
-  for (i = 0; i < pid; i++) {
-    getString(fp);
-    process = getInt(fp);
-    
-    getString(fp);
-    endprog[i] = getInt(fp);
-    
-    int data[endprog[i]];
-    
-    for (j = 0; j <= endprog[i]; j++)
-      mem[i][j] = getInt(fp);
+  for (i = 0; i < fs_getProcessCount(programId); i++) {
+    endprog[i] = fs_getProcessSize(programId, i);
   }
-  
-  fclose(fp);
 }
-
-
 
 void ls(char* s) {
   int i;
@@ -523,52 +497,28 @@ main(int argc, char **argv) {
   int j;
   int id;
   
-  if(argc != 2) { 
-    fprintf(stderr, "usage: cpu <input> \n");
+  if(argc != 1) { 
+    fprintf(stderr, "usage: cpu \n");
     exit(0);
   }
 
-
-  printf("\n\n\n");
+  system("clear");
     
   heavyLine();
   printf("cpu.c started...\n");
   heavyLine();
   
   fs_initialize();
-  
-  // read program into filesystem
-  id = fs_import(argv[1], "prog");
-  
-  
-/*
-  int* temp;
-  
-  temp = fs_getData(1);
-  for (i = 0; i < 20; i++)
-    mem[1][i] = temp[i];
+  pt_initialize();
 
-  temp = fs_getData(2);
-  for (i = 0; i < 40; i++)
-    mem[2][i] = temp[i];
-    
-  /*  
-  // initial file listing
-  char* s;
-  // TODO: #define string size
-  s = calloc(132, sizeof(char));
-  ls(s);
-  printf("file listing: \n%s\n", s);
-  free(s);
-  */
+  currentProgramId = fs_import("./programs.cpu/prog2out.cpu", "prog1");
 
-  // read file into memory
-  importMemory(argv[1]);
+  fs_ls();
+  
+  loadProgram(currentProgramId);
 
   executeit();
 
-
-  
   
   
   return 0;

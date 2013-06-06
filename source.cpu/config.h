@@ -30,6 +30,8 @@
   #define PAGE_SIZE        4
   #define PT_MISS         -1
   
+  #define FILE_PATH   "./programs.cpu/"
+  
 
   #define FALSE 0
   #define TRUE 1
