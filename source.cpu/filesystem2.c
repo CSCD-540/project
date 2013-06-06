@@ -46,37 +46,12 @@ void fs_dump() {
     
 }
 
-
-void fs_dumpData(int size, int* data) {
-  int i;
-  
-  printf("    ");
-  for (i = 0; i < 20; i++)
-    printf("%4d", i);
-  printf("\n");
-
-  for (i = 0; i < size; i++) {
-    // row number
-    if (i % 20 == 0) 
-      printf("%4d", i / 20);
-      
-    printf("%4d", data[i]);
-    
-    // row line break
-    if (i % 20 == 19)
-      printf("\n");
-  }
-    
-  printf("\n");
-}
-
-
 void fs_dumpAllData() {
   int i;
   int j;
   
   printf("\n  filesystem[]:\n");
-  fs_dumpData(FS_SIZE, filesystem);
+  dumpData(FS_SIZE, filesystem);
 }
 
 
@@ -128,7 +103,7 @@ int fs_import(char* filename, char* name) {
     data[i] = getInt(fp);
   
   if (FS_VERBOSE)
-    fs_dumpData(fileSize, data);
+    dumpData(fileSize, data);
   
   fs_addFile(name, fileSize, processes, processStart, processSize, data);
   
@@ -154,7 +129,7 @@ int fs_addFile(char* name, int fileSize, int processes, int* processStart, int* 
       printf("\nprocessSize: ");
       for (i = 0; i < MAXPRO; i++)
         printf("%d ", processSize[i]);
-      fs_dumpData(fileSize, data);
+      dumpData(fileSize, data);
     }
     heavyLine();
   }
@@ -182,7 +157,7 @@ int fs_addData(int fileSize, int* data) {
     lightLine();
     printf("fs_addData(%d, ...)\n", fileSize);
     if (FS_VERBOSE)
-      fs_dumpData(fileSize, data);
+      dumpData(fileSize, data);
     lightLine();
   }
   
@@ -320,7 +295,7 @@ int* fs_getPage(int id, int process, int offset, int size) {
   int* data;
   INode* node;
   
-  if (FS_VERBOSE) {
+  if (FS_DEBUG) {
     lightLine();
     printf("fs_getPage(%d, %d, %d, %d)\n", id, process, offset, size);
     lightLine();
@@ -343,6 +318,34 @@ int* fs_getPage(int id, int process, int offset, int size) {
 
 int fs_getINodeCount() {
   return iNodes->count;
+}
+
+int fs_getProcessCount(int id) {
+  INode* node;
+  
+  if (FS_VERBOSE) {
+    lightLine();
+    printf("fs_getPage(%d)\n", id);
+    lightLine();
+  }
+  
+  node = list_peekNode(iNodes, (void*)id, inode_compareById);
+  return node->processes;
+}
+
+
+int fs_getProcessSize(int id, int process) {
+  INode* node;
+  
+  if (FS_VERBOSE) {
+    lightLine();
+    printf("fs_getPage(%d, %d)\n", id, process);
+    lightLine();
+  }
+  
+  node = list_peekNode(iNodes, (void*)id, inode_compareById);
+  
+  return node->processSize[process];
 }
 
 void fs_ls() {

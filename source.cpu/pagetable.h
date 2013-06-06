@@ -2,12 +2,9 @@
 #include <stdlib.h>
 
 #include "config.h"
+#include "filesystem2.h"
 
-#define PT_DEBUG   1
 
-#define PAGE_SIZE  4
-
-#define PT_MISS   -1
 
 void pt_initialize();
 void pt_dump();

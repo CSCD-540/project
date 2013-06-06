@@ -1,12 +1,13 @@
 #include "pagetable.h"
 
 extern int mem[MAXPRO][MAXMEM];
+extern currentProgramId;
 
-int pt[MAXPRO][MAXMEM / PAGE_SIZE];     // inverted page table
+int pt[MAXPRO][MAXMEM / PAGE_SIZE];       // inverted page table
 int ptCount[MAXPRO][MAXMEM / PAGE_SIZE];  // used to track the last time a page was used
-int ptCounter = 0;                // LRU counter
+int ptCounter = 0;                        // LRU counter
 
-int pages = MAXMEM / PAGE_SIZE;
+int ptSize = MAXMEM / PAGE_SIZE;
 
 void pt_initialize() {
   int i;
@@ -15,14 +16,20 @@ void pt_initialize() {
   if (PT_DEBUG) {
     heavyLine();
     printf("pt_initialize()\n");
-    heavyLine();
   }
   
   for (i = 0; i < MAXPRO; i++)
-    for (j = 0; j < pages; j++)
-      pt[i][j] = -1;
+    for (j = 0; j < ptSize; j++)
+      pt[i][j] = PT_NULL;
+
+  if (PT_VERBOSE) 
+    pt_dump();
+
+  if (PT_DEBUG) 
+    heavyLine();
 
 }
+
 
 void pt_dump() {
   int i;
@@ -35,96 +42,145 @@ void pt_dump() {
   }
   
   for (i = 0; i < MAXPRO; i++) {
-    printf("process: %d \n", i);
-    for (j = 0; j < pages; j++) {
-      printf("%5d", pt[i][j]);
-    }
-    printf("\n\n");
+    dumpData(ptSize, pt[i]);
+    printf("\n");
   }
+  
 }
 
 int pt_getPageNumber(int instruction) {
+  if (PT_VERBOSE) {
+    lightLine();
+    printf("pt_getPageNumber(%d)\n", instruction);
+    lightLine();
+  }
+  
   return instruction / PAGE_SIZE;
 }
 
+
 int pt_getPageOffset(int instruction) {
+  if (PT_VERBOSE) {
+    lightLine();
+    printf("pt_getPageOffset(%d)\n", instruction);
+    lightLine();
+  }
+  
   return instruction % PAGE_SIZE;
 }
 
-int pt_getPage(int process, int vPage) {
+int pt_getPage(int process, int virtualPage) {
   int i;
+
+  if (PT_VERBOSE) {
+    lightLine();
+    printf("pt_getPage(%d, %d)\n", process, virtualPage);
+    lightLine();
+  }
   
-  for (i = 0; i < pages; i++)
-    if (pt[process][i] == vPage)
+  
+  for (i = 0; i < ptSize; i++)
+    if (pt[process][i] == virtualPage)
       return i;
+
+  heavyLine();
+  printf("PT_MISS!\n");
+  heavyLine();
   
   return PT_MISS;
 }
 
-int pt_requestInstruction(int process, int vAddress) {
-  int vPage;
-  int pPage;
-  int offset;
-  int pAddress;
-  
-  vPage  = pt_getPageNumber(vAddress);  
-  offset = pt_getPageOffset(vAddress);
-  pPage  = pt_getPage(process, vPage);
-
-  if (pPage == PT_MISS)
-    pPage = pt_loadPage(process, vPage);
-  
-  pAddress = (pPage * PAGE_SIZE) + offset;
-  
-  return mem[process][pAddress];
-}
-
-
+// return page table id
 int pt_evictPage(int process) {
-  /*
   int i;
-  int virtualPage = -1;
+  int pageTableId;
   int min = ptCounter;
   
-  // Check for empty page
-  for (i = 0; i < PT_VIRTUAL_PAGES; i++)
-    if (pt[process][i] == -1)
+  if (PT_DEBUG) {
+    lightLine();
+    printf("pt_evictPage(%d)\n", process);
+    lightLine();
+  }
+  
+  // Check for an empty page
+  for (i = 0; i < ptSize; i++){
+    if (pt[process][i] == PT_NULL)
       return i;
+  }
   
-  // Check for least recently used page
-  for (i = 0; i < PT_VIRTUAL_PAGES; i++)
-    if (ptLRU[process][i] < min) {
-      min = ptLRU[process][i];
-      virtualPage = i;
+  // Check for the least recently used page
+  for (i = 0; i < ptSize; i++) {
+    if (ptCount[process][i] < min) {
+      min = ptCount[process][i];
+      pageTableId = i;
     }
+  }
   
-  return virtualPage;
-  */ 
-  return -1;
+  return pageTableId;
 }
 
-
-int pt_loadPage(int process, int page) {
-  /*
-  int virtualPage;
-  
-  virtualPage = pt_EvictPage(process);
-  pt[process][virtualPage] = page;
-  ptLRU[process][virtualPage] = ptCounter++;
-}
-
-// -1 indicates page fault
-int pt_getVirtualPage(int process, int page) {
-  int virtualPage = -1;
+// returns physical page id
+int pt_loadPage(int process, int virtualPageId) {
   int i;
+  int pageTableId;
+  int physicalAddress;
+  int* page;
   
-  for (i = 0; i < PT_VIRTUAL_PAGES; i++) 
-    if (pt[process][i] == page)
-      virtualPage = i;
+  if (PT_DEBUG) {
+    lightLine();
+    printf("pt_loadPage(%d, %d)\n", process, virtualPageId);
+    lightLine();
+  }
   
-  return i;
-  */
-  return -1;
+  pageTableId = pt_evictPage(process);
+  physicalAddress = pageTableId * PAGE_SIZE;
+  
+  page = fs_getPage(currentProgramId, process, virtualPageId * PAGE_SIZE, PAGE_SIZE);
+  
+  // update page table
+  pt[process][pageTableId] = virtualPageId;
+  
+  // update the count
+  ptCount[process][pageTableId] = ptCounter++;
+  
+  // load into physical memory
+  for (i = 0; i < PAGE_SIZE; i++)
+    mem[process][physicalAddress + i] = page[i];
+  
+  return pageTableId;
 }
 
+// returns the requested instruction
+int pt_requestInstruction(int process, int virtualAddress) {
+  int physicalAddress;
+  
+  int virtualPage;
+  int physicalPage;
 
+  int offset;
+  
+  int instruction;
+  
+  if (PT_DEBUG) {
+    heavyLine();
+    printf("pt_requestInstruction(%d, %d)\n", process, virtualAddress);
+    heavyLine();
+  }
+  
+  virtualPage  = pt_getPageNumber(virtualAddress);
+  physicalPage = pt_getPage(process, virtualPage);
+  offset       = pt_getPageOffset(virtualAddress);
+  
+  if (physicalPage == PT_MISS) {
+    physicalPage = pt_loadPage(process, virtualPage);
+    dumpData(MAXMEM, mem[0]);
+  }
+  
+  physicalAddress = (physicalPage * PAGE_SIZE) + offset;
+  instruction = mem[process][physicalAddress];
+
+  lightLine();
+  printf("instruction: %d\n", instruction);
+  lightLine();
+  return instruction;  
+}

@@ -19,7 +19,6 @@
   void fs_close() ;
 
   void fs_dump();
-  void fs_dumpData(int size, int* data);
   void fs_dumpAllData();
 
   int fs_dataIsValid(int size, int* data);
@@ -37,7 +36,10 @@
   void fs_getAllNodes(INode *nodes[]);
   int* fs_getData(int id);
   int* fs_getPage(int id, int process, int start, int size);
+
   int fs_getINodeCount();
+  int fs_getProcessCount(int id);
+  int fs_getProcessSize(int id, int process);
 
   void fs_ls();
   void fs_copy(char* name, char* newName);

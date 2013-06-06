@@ -5,6 +5,8 @@ int  mem[MAXPRO][MAXMEM];   // physical memory
 
 int  p0running;
 
+int currentProgramId;
+
 char getChar(FILE* fp) {
   char c;
   
@@ -47,4 +49,27 @@ void lightLine() {
 
 void starLine() {
   printf("************************************************************\n");
+}
+
+void dumpData(int size, int* data) {
+  int i;
+  
+  printf("    ");
+  for (i = 0; i < 20; i++)
+    printf("%4d", i);
+  printf("\n");
+
+  for (i = 0; i < size; i++) {
+    // row number
+    if (i % 20 == 0) 
+      printf("%4d", i / 20);
+      
+    printf("%4d", data[i]);
+    
+    // row line break
+    if (i % 20 == 19)
+      printf("\n");
+  }
+    
+  printf("\n");
 }
