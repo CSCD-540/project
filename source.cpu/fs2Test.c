@@ -67,7 +67,7 @@ int main() {
   fs_dumpAllData();
 
   fs_ls();  
-  fs_copy("prog1", "progA");
+  fs_copy(5, "progA");
   
   fs_ls();
 

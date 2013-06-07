@@ -365,17 +365,17 @@ void fs_ls() {
     lightLine();
 }
 
-void fs_copy(char* name, char* newName) {
+void fs_copy(int id, char* newName) {
   int* data;
   INode* node;
   
   if (FS_DEBUG) {
     lightLine();
-    printf("fs_copy(%s, %s)\n", name, newName);
+    printf("fs_copy(%id, %s)\n", id, newName);
     lightLine();
   }
   
-  node = list_peekNode(iNodes, (void*)name, inode_compareByName);
+  node = list_peekNode(iNodes, (void*)id, inode_compareById);
   data = fs_getData(node->id);
 
   fs_addFile(newName, node->fileSize, node->processes, node->processStart, node->processSize, data);

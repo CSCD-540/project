@@ -42,6 +42,6 @@
   int fs_getProcessSize(int id, int process);
 
   void fs_ls();
-  void fs_copy(char* name, char* newName);
+  void fs_copy(int id, char* newName);
 
 #endif
