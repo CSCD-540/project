@@ -4,6 +4,7 @@
 #include <errno.h>
 
 #include "sharedmemory.h"
+#include "shell.h"
 
 #define MAX_LENGTH 1024
 #define DELIMS " \t\r\n"
@@ -28,73 +29,36 @@ int main() {
 	char line[MAX_LENGTH];
 	int  result;
 	
-  loop = TRUE;
+  	loop = TRUE;
 	
 	while(loop) {
-	  
-    printf("> ");
-    fgets(line, MAX_LENGTH, stdin);
-    printf("line: %s \n", line);
+	    printf("> ");
+	    fgets(line, MAX_LENGTH, stdin);
+	    printf("line: %s \n", line);
 
-    if (strncmp(line, "q", 1) == 0)
-      loop = FALSE;
-      
-  	// writes user input string to memory
-    strcpy(sm_space, line);
-    
-    // wait for CPU to respond
-    usleep(1000);
-      
-    // display response from CPU
-    printf("received: %s", sm_space);
-    
-  }
-	
-/*
-	while (1) {
-		printf("<3 ");
-
-
-		if(!fgets(line, MAX_LENGTH, stdin)) break;
-		
-		
-		
-/* temporarily commented out to implement shared memory		
-		//parse and execute command
-		if((cmd = strtok(line, DELIMS))) {
-			//clear errors
-			errno = 0;
-			
-			if(strcmp(cmd, "cd") == 0) {
-				char *arg = strtok(0, DELIMS);
-			
-				if(!arg) {
-					fprintf(stderr, "Missing argument; plese include name of directory.\n");
-				} //end if
-				else {
-					//chdir(arg);
-					//result = changeDir(arg);
-					changeDir(arg);
-					if (result != 0) {
-						//if something goes wrong with changing directories; can be modified to deal with different return values.
-						printf("Error in changing directory; please try again.\n");
-					} //end if
-				} //end else
-			} //end if
-			else if(strcmp(cmd, "exit") == 0) { //exit the shell, should also trigger the shutdown proceedures for the OS.
-				break;
-			} //end else if
-			else {
-				system(line);
-			}
-			
-			if(errno) {
-				perror("Command Failed");
-			}
-		} //end if
-
+	    //basic template
+	    if(strncmp(line, "open", 4) == 0) {
+	    	shell_openFile(line, sm_space);
+	    }
+	    else if(strncmp(line, "import", 6) == 0) {
+	    	shell_importFile(line, sm_space);
+	    }
+	    else if (strncmp(line, "q", 1) == 0) {
+	    	loop = FALSE;
+	    	strcpy(sm_space, line);
+	    }
+	    else {
+		  	// writes user input string to memory
+		    strcpy(sm_space, line);
+		    
+		    // wait for CPU to respond
+		    usleep(1000);
+		      
+		    // display response from CPU
+		    printf("received: %s \n", sm_space);
+		}
 	} //end while
-*/	
+
 	// release the shared memory
   if(shmdt(sm_space) != 0)
     return -3;
@@ -102,21 +66,29 @@ int main() {
 	return 0;
 } //end main
 
-//change to the directory asked for by the user
-int changeDir() {
-	
-} //end changeDir
+void shell_openFile(char line[], char* sm_space) {
 
-//list all the contents of the current working directory.
-int listDir() {
-	
-} //end listDir
+	//for testing
+	// writes user input string to memory
+    strcpy(sm_space, line);
+    
+    // wait for CPU to respond
+    usleep(1000);
 
-//Extra features: http://cnswww.cns.cwru.edu/php/chet/readline/rltop.html
-void readLine() {
-	
-} //end readLine
+    // display response from CPU
+    printf("received: %s", sm_space);
+}
 
-void history() {
-	
-} //end history
+void shell_importFile(char line[], char* sm_space) {
+
+
+	//for testing
+	// writes user input string to memory
+    strcpy(sm_space, line);
+    
+    // wait for CPU to respond
+    usleep(1000);
+
+    // display response from CPU
+    printf("received: %s", sm_space);
+}

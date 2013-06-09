@@ -25,19 +25,55 @@ main(int argc, char **argv) {
 
 	  if (strcmp(sm_space, "+CPU_WAITING+") != 0) {
 	    
-	    if (strncmp(sm_space, "q", 1) == 0)
+	    if (strncmp(sm_space, "q", 1) == 0) {
         loop = FALSE;
-	    
-      printf("received: %s", sm_space);
+        printf("received: %s", sm_space);
+      }
+      else if(strncmp(sm_space, "ls", 1) == 0) {
+      	// initial file listing
+		    char* s;
+
+		    printf("file listing: \n%s\n", s);
+		    strcpy(sm_space, s);
+      } //end if
+      //template
+      else if(strncmp(sm_space, "open", 4) == 0) {
+        printf("Opening File...\n");
+
+        //code to open file in the cpu
+
+        // make response
+        strcpy(sm_space, "results of opening!\n");
+
+        usleep(1500);
       
-      // make response
-      strcpy(sm_space, "response from CPU\n");
+        // resume loop
+        strcpy(sm_space, "+CPU_WAITING+");
+
+      }
+      else if(strncmp(sm_space, "import", 6) == 0) {
+        printf("Importing File...\n");
+
+        //code to import file in the cpu
+
+        // make response
+        strcpy(sm_space, "results of import!\n");
+
+        usleep(1500);
       
-      usleep(1500);
+        // resume loop
+        strcpy(sm_space, "+CPU_WAITING+");
+
+      }
+      else {
+      	// make response
+      	strcpy(sm_space, "response from CPU\n");
+
+        usleep(1500);
       
-      // resume loop
-      strcpy(sm_space, "+CPU_WAITING+");
-      
+      	// resume loop
+      	strcpy(sm_space, "+CPU_WAITING+");
+      } //end else
     }		
 
 	}
