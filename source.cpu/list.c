@@ -163,13 +163,15 @@ void* list_popNode(List* list, void* value, int (*compareNode)(void* nodeType, v
 }
 
 void list_print(List* list, void (*printNode)(void* node)) {
-  printf("==================================================\n");
-  printf("LIST: %s \n", list->name);
+  printf("  LIST: %s \n", list->name);
 
-  LIST_FOREACH(list, first, next, cur)
-    printNode(cur->value);
-
-  printf("--------------------------------------------------\n");
+  if (list->count > 0) { 
+    LIST_FOREACH(list, first, next, cur)
+      printNode(cur->value);
+  } else {
+    printf("  *empty list*\n");
+  }
+  
 }
 
 int list_valueIsUnique(List* list, void* value, int (*compareNode)(void* nodeType, void* value)) {

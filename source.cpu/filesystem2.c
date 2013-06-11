@@ -1,496 +1,383 @@
-/* temporary filesystem */
+#include "filesystem2.h"
 
-/* includes */
-#include <stdlib.h>
-#include <string.h>
-
-/* #defines */
-#define FS_SIZE        100
-#define FS_NAME_SIZE    16
-#define FS_INODES       10
-
-#define FS_COLUMNS      20
-
-#define true 1;
-#define false 0;
-
-/* structs */
-struct inode {
-  int  id;
-  char name[FS_NAME_SIZE];
-  int  used;
-  int  start;
-  int  size;
-};
-
-typedef struct inode INode;
 
 /* global variables */
-int fileCount = 0;
-
+int fs_idCounter;
 int filesystem[FS_SIZE];
-// TODO: convert to linked list
-struct inode inodes[FS_INODES];
-
-
-/* prototypes */
-void fs_test();
-void fs_initialize();
-int  fs_import(char* filename);
-
-void fs_dump();
-void fs_dumpData(int id);
-void fs_dumpAllData();
-void fs_dumpINode(int id);
-void fs_dumpINodeByIndex(int index);
-void fs_dumpAllINodes();
-
-int  fs_getINodeCount();
-int  fs_getINodeIndex(int id);
-
-// TODO: Fix these
-void fs_getINode(int id, INode* node);
-void fs_getAllINodes(struct inode* nodes);
-
-int  fs_getFileId(char name[FS_NAME_SIZE]);
-
-void fs_getFile(int id, int offset, int size, int* page);
-void fs_getFileByName(char name[FS_NAME_SIZE], int offset, int size, int* page);
-
-// TODO: add file names to program file
-//int  fs_addFile(char name[FS_NAME_SIZE], int size, int* data);
-int  fs_addFile(int size, int* data);
-//int  fs_addINode(char name[FS_NAME_SIZE], int start, int size);
-int  fs_addINode(int start, int size);
-int  fs_addData(int size, int* data);
-
-void fs_removeFile(int id);
-void fs_defrag();
-
-int  fs_nameExists(char name[FS_NAME_SIZE]);
-
-
-/* helper functions */
-void heavyLine() {
-  printf("==============================\n");
-}
-
-void lightLine() {
-  printf("------------------------------\n");
-}
-
-void starLine() {
-  printf("******************************\n");
-}
-
-
-/* filesystem functions */
-void fs_test() {
-  int i;
-  int j;
-  
-  heavyLine();
-  printf("filesystem self test\n");
-  heavyLine();
-  printf("\n");
-  lightLine();
-
-  printf("fs_initialize()\n");
-  fs_initialize();
-  lightLine();
-  
-  printf("inodes: \n");
-  fs_dumpAllINodes();
-  lightLine();
-  
-  printf("filesystem: \n");
-  fs_dumpAllData();
-  lightLine();
-  
-  printf("fs_getINodeCount() = %d\n", fs_getINodeCount());
-  lightLine();
-  
-  int testFiles = 4;
-  int testDataSize = 30;
-  int testData[testDataSize];
-  
-  printf("fs_addFile()\n");
-  for (i = 0; i < testDataSize; i++)
-    testData[i] = 100 + i;
-  
-  for (i = 0; i < testFiles; i++) {
-    printf("adding file %4d \n", i);
-    fs_addFile(testDataSize, testData);
-  }
-    
-  lightLine();
-  
-  printf("fs_getINodeCount() = %d\n", fs_getINodeCount());
-  lightLine();
-  
-  fs_dump();
-  lightLine();
-  
-  printf("filesystem: \n");
-  fs_dumpAllData();
-  lightLine();
-  
-  printf("fs_removeFile() \n");
-  lightLine();
-  
-  for (i = 0; i < testFiles; i++) {
-    printf("removing file %4d \n", i);
-    fs_removeFile(i);
-    fs_dumpAllData();
-    lightLine();
-  }
-  
-  for (i = 0; i < testFiles; i++) {
-    printf("adding file %4d \n", i);
-    fs_addFile(testDataSize, testData);
-  }
-  
-  lightLine();
-  
-  fs_dumpAllData();
-  lightLine();
-  
-  printf("removing file %4d \n", 1);
-  fs_removeFile(1);
-  lightLine();
-  
-  fs_dumpAllData();
-  lightLine();
-  
-  printf("adding file \n");
-  fs_addFile(testDataSize, testData);
-  lightLine();
-  
-  fs_dumpAllData();
-  lightLine();
-  
-   fs_dump();
-   lightLine();
-  
-  
-}
+List* iNodes;
 
 
 void fs_initialize() {
-  int i;
+  int i;  
+  
+  if (FS_DEBUG) {
+    heavyLine();
+    printf("fs_initialize()\n");
+  }
+  
+  fs_idCounter = 0;
+  iNodes = list_create("iNodes");
   
   for (i = 0; i < FS_SIZE; i++)
-    filesystem[i] = -1;
+    filesystem[i] = FS_NULL;
   
-  for (i = 0; i < FS_INODES; i++)
-    inodes[i].used = false;
+  if (FS_VERBOSE) 
+    fs_dump();
+    
+  if (FS_DEBUG)
+    heavyLine();
+  
+  
 }
 
-/* returns number of processes */
-int fs_import(char* filename) {
-  int i;
-  int j;
-  
-  int processes;
-  int process;
-  int size;
-  
-  FILE* fp;
-  
-  
-  fp = fopen(filename, "r");
-  
-  getString(fp);
-  processes = getInt(fp);
-  
-  printf("reading %d processes from: %s \n", processes, filename);
-  lightLine();
-  
-  for (i = 0; i < processes; i++) {
-    getString(fp);
-    process = getInt(fp);
-    
-    getString(fp);
-    size = getInt(fp);
-    
-    int data[size];
-    
-    for (j = 0; j <= size; j++)
-      data[j] = getInt(fp);
-  
-    printf("process: %4d \t size: %4d \n", i, size);
-    for (j = 0; j < size; j++) {
-      printf("%5d", data[j]);
-    }
-    printf("\n");
-      
-    fs_addFile(size, data);
-    lightLine();
-  }
-    
-  fclose(fp);
-  
-  return processes;
+void fs_close() {
+  list_destroy(iNodes, inode_destroy);
 }
 
 void fs_dump() {
-  int i;
   
-  for(i = 0; i < FS_INODES; i++) 
-    if (inodes[i].used) {
-      fs_dumpINodeByIndex(i);
-      lightLine();
-      fs_dumpData(i);
-      lightLine();
-    }
-}
+  printf("  fs_idCounter:  %4d \n", fs_idCounter);
+  printf("  iNodes->count: %4d \n", iNodes->count);
 
-void fs_dumpData(int id) {
-  int i;
-  struct inode node;
-
-  node = inodes[id];
+  list_print(iNodes, inode_print);
   
-  for(i = 0; i < node.size; i++) 
-    printf("%5d", filesystem[node.start + i]);
-  
-  printf("\n");
+  if (FS_VERBOSE)
+    fs_dumpAllData();
+    
 }
 
 void fs_dumpAllData() {
   int i;
   int j;
   
-  printf("    ");
-  for (i = 0; i < 20; i++)
-    printf("%4d", i);
-  printf("\n");
-
-  for (i = 0; i < FS_SIZE; i++) {
-    if (i % 20 == 0) 
-      printf("%4d", i / 20);
-      
-    printf("%4d", filesystem[i]);
-    if (i % 20 == 19)
-      printf("\n");
-  }
-
-  
-  printf("\n");
+  printf("\n  filesystem[]:\n");
+  dumpData(FS_SIZE, filesystem);
 }
 
 
-void fs_dumpINode(int id) {
-  struct inode node;
-  
-  //node = inodes[id];
-  fs_getINode(id, &node);
-  
-  printf("  ");
-  printf("id:    %4d  \t", node.id);
-  printf("size:  %4d  \t", node.size);
-  printf("start: %4d  \t", node.start);
-  printf("used:  %4d  \t", node.used);
-  printf("name:  %16s \n", node.name);
-}
-
-void fs_dumpINodeByIndex(int index) {
-  struct inode node;
-  
-  node = inodes[index];
-    
-  printf("  ");
-  printf("id:    %4d  \t", node.id);
-  printf("size:  %4d  \t", node.size);
-  printf("start: %4d  \t", node.start);
-  printf("used:  %4d  \t", node.used);
-  printf("name:  %16s \n", node.name);
-}
-
-void fs_dumpAllINodes() {
+int fs_dataIsValid(int size, int* data) {
   int i;
   
-  for (i = 0; i < FS_INODES; i++) {
-    fs_dumpINode(i);
-  }
+  for (i = 0; i < size; i++)
+    if (data[i] == FS_NULL)
+      return FALSE;
+  
+  return TRUE;
 }
 
-int fs_getINodeCount() {
+
+int fs_import(char* filename, char* name) {
   int i;
-  int count;
+  int j;
   
-  count = 0;
-  
-  for(i = 0; i < FS_INODES; i++) 
-    if (inodes[i].used) 
-      count++;
-  
-  return count;
-}
-
-/* return the inodes index */
-int fs_getINodeIndex(int id) {
-  int i;
-  int index;
-  
-  for (i = 0; i < FS_INODES; i++) {
-    if (inodes[i].used && inodes[i].id == id)
-      index = i;
-  }
-
-  return index;
-}
-
-void fs_getINode(int id, INode* node){
-  int index;
-  
-  index = fs_getINodeIndex(id);
-  printf("index: %d", index);
-  node = &inodes[index];
-  
-}
-
-
-void fs_getAllINodes(struct inode* nodes) {
-  int i;
-  int index;
-  
-  index = 0;
-  
-  nodes = calloc(fs_getINodeCount(), sizeof(struct inode));
-  
-  for (i = 0; i < FS_INODES; i++)
-    if (inodes[i].used)
-      nodes[index++] = inodes[i];
-}
-
-int  fs_getFileId(char name[FS_NAME_SIZE]) {
-  int i;
-  
-  for (i = 0; i < FS_INODES; i++)
-    if (inodes[i].used)
-      if (strcmp(inodes[i].name, name) == 0)
-        return i;
-  
-  return -1;
-}
-
-void fs_getFile(int id, int offset, int size, int* page) {
-  int  i;
-  int  index;
-  struct inode node;
-  
-  //fs_getINode(id, node);
-  index = fs_getINodeIndex(id);
-  
-  node = inodes[index];  
-
-  for (i = 0; i < size; i++) {
-    index = node.start + offset + i;
-    page[i] = filesystem[index];
-  }
-  
-}
-
-
-void fs_getFileByName(char name[FS_NAME_SIZE], int offset, int size, int* page) {
   int id;
+  int fileSize;
+  int processes;
+  int processStart[MAXPRO];
+  int processSize[MAXPRO];
   
-  id = fs_getFileId(name);
+  FILE* fp;
   
-  return fs_getFile(id, offset, size, page);
+  if (FS_DEBUG) {
+    heavyLine();
+    printf("fs_import(%s, %s)\n", filename, name);
+    heavyLine();
+  }
+  
+  fp = fopen(filename, "r");
+  
+  // discard string: processes
+  free((char*)getString(fp));
+  processes = getInt(fp);
+  
+  // discard string: size
+  free((char*)getString(fp));
+  fileSize = 0;
+  for (i = 0; i < processes; i++) {
+    processStart[i] = fileSize;
+    processSize[i] = getInt(fp) + 1;
+    fileSize += processSize[i];
+  }
+  
+  int data[fileSize];
+  for (i = 0; i < fileSize; i++)
+    data[i] = getInt(fp);
+  
+  if (FS_VERBOSE)
+    dumpData(fileSize, data);
+  
+  id = fs_addFile(name, fileSize, processes, processStart, processSize, data);
+  
+  fclose(fp);
+  
+  return id;
 }
 
-/* return id */
-//int fs_addFile(char name[FS_NAME_SIZE], int size, int* data) {
-int fs_addFile(int size, int* data) {
-  int i;
-  int id;
-  int start;
-    
-  start = fs_addData(size, data);
-  //id = fs_addINode(name, start, size);
-  id = fs_addINode(start, size);
-}
 
 /* returns id */
-//int fs_addINode(char name[FS_NAME_SIZE], int start, int size) {
-int fs_addINode(int start, int size) {
+int fs_addFile(char* name, int fileSize, int processes, int* processStart, int* processSize, int* data) {  
   int i;
+  int id;
+  int fileStart;
   
-  /* outside of bounds */
-  if (start < 0)
-    return -1;
-  
-  for (i = 0; i < FS_INODES; i++)
-    if (!inodes[i].used)
-      break;
+  if (FS_DEBUG) {
+    heavyLine();
+    printf("fs_addFile(\"%s\", %d, ..., ..., ...)\n", name, fileSize);
 
-  //strcpy(name, inodes[i].name);
-  inodes[i].id    = fileCount++;
-  inodes[i].used  = true;
-  inodes[i].start = start;
-  inodes[i].size  = size;
+    if (FS_VERBOSE) {
+      printf("processStart: ");
+      for (i = 0; i < MAXPRO; i++)
+        printf("%d ", processStart[i]);
+      printf("\nprocessSize: ");
+      for (i = 0; i < MAXPRO; i++)
+        printf("%d ", processSize[i]);
+      dumpData(fileSize, data);
+    }
+    heavyLine();
+  }
+  
+  if (!fs_dataIsValid(fileSize, data))
+    return -1;
+    
+  fileStart = fs_addData(fileSize, data);
+  id = fs_addINode(name, fileStart, fileSize, processes, processStart, processSize);
+
+  if (FS_VERBOSE)
+    fs_dump();
+    
+  return id;
 }
 
+
 /* returns start position */
-int fs_addData(int size, int data[]) {
+int fs_addData(int fileSize, int* data) {
   int i;
-  int start;
+  int fileStart;
   int count;
+  
+  if (FS_DEBUG) {
+    lightLine();
+    printf("fs_addData(%d, ...)\n", fileSize);
+    if (FS_VERBOSE)
+      dumpData(fileSize, data);
+    lightLine();
+  }
   
   i = 0;
   count = 0;
   
-  do {
-    if (filesystem[i] == -1)
+  while (i < FS_SIZE && count < fileSize) {
+    if (filesystem[i] == FS_NULL)
       count++;
     else
       count = 0;
     
-    if (count >= size)
-      break;
-  } while (i++ < FS_SIZE);
-  
+    i++;
+  }
   
   /* not enough room */
-  if (i > FS_SIZE)
+  if (count < fileSize) {
+    printf("insufficient disk space\n");
     return -1;
+  }
      
-  start = i - size + 1;
+  fileStart = i - fileSize;
   
-  for (i = 0; i < size; i++) 
-    filesystem[start + i] = data[i];
+  for (i = 0; i < fileSize; i++) 
+    filesystem[fileStart + i] = data[i];
+    
+  return fileStart;
+}
 
-  return start;
+/* returns id */
+int fs_addINode(char* name, int fileStart, int fileSize, int processes, int* processStart, int* processSize) {
+  int i;
+  INode* node;
+  
+  if (FS_DEBUG) {
+    lightLine();
+    printf("fs_addINode(\"%s\", %d, %d, ..., ...)\n", name, fileStart, fileSize);
+    
+    if (FS_VERBOSE) {
+      printf("processStart: [");
+      for (i = 0; i < processes; i++)
+        printf("%d ", processStart[i]);
+      printf("]\nprocessSize: [");
+      for (i = 0; i < processes; i++)
+        printf("%d ", processSize[i]);
+      printf("]\n");
+    }
+    lightLine();
+  }
+  
+  /* outside of bounds */
+  if (fileStart < 0) {
+    printf("start position is outside of bounds\n");
+    return -1;
+  }
+  
+  node = inode_create(++fs_idCounter, name, fileStart, fileSize, processes, processStart, processSize);
+  list_addLast(iNodes, node);
+  
+  return fs_idCounter;
 }
 
 
 void fs_removeFile(int id) {
   int i;
-
-  for (i = 0; i < inodes[id].size; i++)
-    filesystem[inodes[id].start + i];
+  INode* node;
   
-  inodes[id].used = false;
+  if (FS_DEBUG) {
+    lightLine();
+    printf("removeFile(%d) \n", id);
+    lightLine();
+  }
   
-  for (i = 0; i < inodes[id].size; i++)
-    filesystem[inodes[id].start + i] = -1;
+  node = list_popNode(iNodes, (void*)id, inode_compareById);
+  
+  if (node == NULL)
+    return;
+  
+  for (i = 0; i < node->fileSize; i++)
+    filesystem[node->fileStart + i] = -1;
+  
+  free(node);
 }
 
-
-// TODO: defrag
-void fs_defrag() {
+void fs_removeAllFiles() {
+  int  i;
+  int  count;
+  INode* node;
   
+  if (FS_DEBUG) {
+    lightLine();
+    printf("removeAllFiles()\n");
+    lightLine();
+  }
+  
+  count = iNodes->count;
+  for (i = 0; i < count; i++) {
+    node = list_peekFirst(iNodes);
+    inode_print(node);
+    fs_removeFile(node->id);
+  }
 }
 
+INode* fs_getNode(int id) {
+  return (INode*)list_peekNode(iNodes, (void*)id, inode_compareById);;
+}
 
-int fs_nameExists(char name[FS_NAME_SIZE]) {
+void fs_getAllNodes(INode *nodes[]) {
   int i;
   
-  for (i = 0; i < FS_INODES; i++)
-    if (strcmp(inodes[i].name, name) == 0)
-      return true;
+  i = 0;
+  LIST_FOREACH(iNodes, first, next, cur) {
+    nodes[i++] = (INode*)cur->value;
+  }
+}
+
+int* fs_getData(int id) {
+  int i;
+  int* data;
+  INode* node;
   
-  return false;
+  node = list_peekNode(iNodes, (void*)id, inode_compareById);
+  data = calloc(node->fileSize, sizeof(int));
+  
+  for (i = 0; i < node->fileSize; i++)
+    data[i] = filesystem[node->fileStart + i];
+  
+  return data;
+}
+
+
+int* fs_getPage(int id, int process, int offset, int size) {
+  int i;
+  int position;
+  int* data;
+  INode* node;
+  
+  if (FS_DEBUG) {
+    lightLine();
+    printf("fs_getPage(%d, %d, %d, %d)\n", id, process, offset, size);
+    lightLine();
+  }
+  
+  node = list_peekNode(iNodes, (void*)id, inode_compareById);
+  data = calloc(size, sizeof(int));
+  
+  for (i = 0; i < size; i++) {
+    position = node->fileStart + node->processStart[process] + offset + i;
+    if (position < node->fileStart + node->fileSize)
+      data[i] = filesystem[position];
+    else
+      data[i] = FS_NULL;
+  }
+  
+  return data;
+}
+
+
+int fs_getINodeCount() {
+  return iNodes->count;
+}
+
+int fs_getProcessCount(int id) {
+  INode* node;
+  
+  if (FS_VERBOSE) {
+    lightLine();
+    printf("fs_getPage(%d)\n", id);
+    lightLine();
+  }
+  
+  node = list_peekNode(iNodes, (void*)id, inode_compareById);
+  return node->processes;
+}
+
+
+int fs_getProcessSize(int id, int process) {
+  INode* node;
+  
+  if (FS_VERBOSE) {
+    lightLine();
+    printf("fs_getPage(%d, %d)\n", id, process);
+    lightLine();
+  }
+  
+  node = list_peekNode(iNodes, (void*)id, inode_compareById);
+  
+  return node->processSize[process];
+}
+
+void fs_ls() {
+  if (FS_DEBUG) {
+    lightLine();
+    printf("fs_ls()\n");
+    lightLine();
+  }
+  
+  list_print(iNodes, inode_print);
+  if (FS_VERBOSE)
+    fs_dumpAllData();
+  
+  if (FS_DEBUG)
+    lightLine();
+}
+
+void fs_copy(int id, char* newName) {
+  int* data;
+  INode* node;
+  
+  if (FS_DEBUG) {
+    lightLine();
+    printf("fs_copy(%id, %s)\n", id, newName);
+    lightLine();
+  }
+  
+  node = list_peekNode(iNodes, (void*)id, inode_compareById);
+  data = fs_getData(node->id);
+
+  fs_addFile(newName, node->fileSize, node->processes, node->processStart, node->processSize, data);
+  free(data);
 }

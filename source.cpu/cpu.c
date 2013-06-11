@@ -1,48 +1,13 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "cpu.h"
 
-
-#include "cpu.tab.h"
-
-#define DEBUG 0
-
-#define MAXPRO 6          // max num of processes
-#define MAXMEM 200        // max size of a process
-#define STACKSIZE 100     // max size of the stack
-#define REGISTERSIZE 10   // size of each process registers
-#define MAXGMEM 20        // max size of global memory
-#define NORMAL 0          // denotes a normal return from exe()
-#define LOCKED 1          // stops process switching until unlock
-#define UNLOCKED 2        // remove lock
-#define ENDPROCESS 3
-#define p0WRITE 4         // tells p0 to run-p0 should only run after a write to gmem
-
-#define FALSE 0
-#define TRUE 1
-
-#include "helper.c"
-#include "pagingsystem.c"
-#include "filesystem.c"
-
-int  execute;
-
-int  gmem[MAXGMEM];         // global var sit here 
-int  mem[MAXPRO][MAXMEM];   // physical memory
+extern int  gmem[MAXGMEM];         // global var sit here 
+extern int  mem[MAXPRO][MAXMEM];   // physical memory
+extern int  currentProgramId;
 
 int  endprog[MAXPRO];       // last instruction of proc
 int  pid = 0;               // current process id
 
 int  p0running;
-
-/* prototypes */
-int exe(int stack[][STACKSIZE], int sp[], int reg[][REGISTERSIZE], int next_instruct[], int next_inst[], int cur_proc);
-int pop(int stack[][STACKSIZE], int proc_id, int sp[], int calledfrom);
-void push(int stack[][STACKSIZE], int proc_id, int sp[],int data, int calledfrom);
-void print_stack(int stack[][STACKSIZE],int sp[]); //debug
-void print_register(int reg[][REGISTERSIZE]); //debug
-void print_gmem();
-
 
 executeit() {
   int cur_proc;
@@ -69,80 +34,83 @@ executeit() {
   next_instruct[4] = 10;
   next_instruct[5] = 10;
 
+  scheduler_init(pid);
+
   while(1) {
-    cont:
-      if(locked == UNLOCKED)
-        cur_proc = (pid == 1) ? 0:(rand()%(pid - 1)) + 1;
+    
+cont:
+    if(locked == UNLOCKED)
+	   cur_proc = scheduler_nextProcess(pic);
 
-      if(proc_complete[cur_proc] == 1) {
-        printf("----------------------------cur_proc: %d\n", cur_proc);
-        goto checkdone;
-      }
+    if(proc_complete[cur_proc] == 1) {
+      printf("----------------------------cur_proc: %d\n", cur_proc);
+      goto checkdone;
+    }
 
-      if (next_instruct[cur_proc] < endprog[cur_proc]) {
-        msg = exe(stack, sp, reg, next_instruct, next_instruct, cur_proc);
+    if (next_instruct[cur_proc] < endprog[cur_proc]) {
+      msg = exe(stack, sp, reg, next_instruct, next_instruct, cur_proc);
         
-        if(msg == ENDPROCESS)
-          proc_complete[cur_proc] = 1;
+      if(msg == ENDPROCESS)
+        proc_complete[cur_proc] = 1;
 
-        //increment next_instruction
-        next_instruct[cur_proc]++;
+      //increment next_instruction
+      next_instruct[cur_proc]++;
         
-        if(msg == UNLOCKED)
-          locked = UNLOCKED;
-        else if(msg == LOCKED || locked == LOCKED)
-          locked = LOCKED;
+      if(msg == UNLOCKED)
+        locked = UNLOCKED;
+      else if(msg == LOCKED || locked == LOCKED)
+        locked = LOCKED;
          
-        //run p0 in its entirety after a gmem write
-        //cur_proc=0;
-        while(msg == p0WRITE || p0running) {
-          p0running = 1; 
-          cur_proc = 0;
-          msg = exe(stack,sp,reg,next_instruct,next_instruct,p0);
+      //run p0 in its entirety after a gmem write
+      //cur_proc=0;
+      while(msg == p0WRITE || p0running) {
+        p0running = 1; 
+        cur_proc = 0;
+        msg = exe(stack,sp,reg,next_instruct,next_instruct,p0);
 
-          next_instruct[cur_proc]++;
+        next_instruct[cur_proc]++;
           
-          if(p0running == 0) {  
-            msg=NORMAL;
-            next_instruct[p0]=10;
-            break;
-          }
-
-          if( next_instruct[p0]>=endprog[p0]) {  
-            p0running=0;
-            sp[p0]=0;
-            next_instruct[p0]=10;
-            msg=NORMAL;
-            break;
-          }
+        if (p0running == 0) {  
+          msg=NORMAL;
+          next_instruct[p0]=10;
+          break;
         }
-        continue;
-      } else {
-        proc_complete[cur_proc]=1;
-      }
 
-      //check if all processes are done
-      checkdone:
-        for(cur_proc = 1; cur_proc < pid; cur_proc++)
-          if(proc_complete[cur_proc] == 0)
-            goto cont;
-      break;
+        if (next_instruct[p0] >= endprog[p0]) {  
+          p0running=0;
+          sp[p0]=0;
+          next_instruct[p0]=10;
+          msg=NORMAL;
+          break;
+        }
+      }
+      continue;
+    } else {
+      proc_complete[cur_proc]=1;
+    }
+
+    //check if all processes are done
+checkdone:
+    for (cur_proc = 1; cur_proc < pid; cur_proc++)
+      if (proc_complete[cur_proc] == 0)
+         goto cont;
+    //exit(0);
+    break;
   }
 
-  print_stack(stack,sp);        // stack should be all 0 and sp at -1
+  //print_stack(stack,sp);        // stack should be all 0 and sp at -1
   print_gmem();
   print_register(reg);
 }
-
 
 int exe(int stack[][STACKSIZE], int sp[], int reg[][REGISTERSIZE], int next_instruct[], int next_inst[], int cur_proc) {
   int i,k, m; 
   int tmp,tmp1, tmp2;
   char name[11];
 
-  i = next_inst[cur_proc];
+  i = next_inst[cur_proc]; 
 
-  switch (mem[cur_proc][i]) {
+  switch (pt_getInstruction(cur_proc, i)) {
     /** OPEN, READ, CLOSE, WRITE, SEEK ::  OS services **/
     case OPEN :
       tmp = peek(stack, cur_proc, sp, 0) ;
@@ -150,13 +118,22 @@ int exe(int stack[][STACKSIZE], int sp[], int reg[][REGISTERSIZE], int next_inst
       tmp1 = peek(stack, cur_proc, sp, -1) ;
       printf("OPEN offset= -1,  data=%d\n", tmp1); 
       i = 0;
-      while ( name[i] =  mem[cur_proc][tmp1+i++] );
+      while ( name[i] =  pt_getInstruction(cur_proc, tmp1+i++) );
       printf("filename passed = %s\n", name);
       printf("OS service call  --- <OPEN>  return file descriptor!(987 is fake)\n");
       push(stack, cur_proc, sp, 987, 11); // dummy fd =987 
       break;
       
     case READ :
+	  //If it is a processes first time to READ then simulate a wait
+ 	  if(wait_state[cur_proc] == READY || wait_time[cur_proc] == READY) {
+		wait_time[cur_proc] = 100;
+		wait_state[cur_proc] = WAITING;
+		heavyLine();
+		printf("Process %d is entering waiting state\n", cur_proc);
+		heavyLine();
+	  }
+      else
       tmp = peek(stack,cur_proc,sp, 0);
       printf("READ,  file descriptor=%d\n", tmp); 
       printf("OS service call  --- <READ> return int read (777 is fake)\n");
@@ -170,6 +147,15 @@ int exe(int stack[][STACKSIZE], int sp[], int reg[][REGISTERSIZE], int next_inst
       break;
     
     case WRITE :
+	  //If it is a processes first time to WRITE simulate wait
+	  if(wait_state[cur_proc] == READY || wait_time[cur_proc] == READY) {
+		wait_time[cur_proc] = 100;
+		wait_state[cur_proc] = WAITING;
+		heavyLine();
+		printf("Process %d is entering waiting state\n", cur_proc);
+		heavyLine();
+	  }
+      else
       tmp = peek(stack, cur_proc, sp, 0);
       printf("WRITE offset=  0,  data=%d\n", tmp); 
       tmp1 = peek(stack, cur_proc, sp, -1) ;
@@ -186,7 +172,7 @@ int exe(int stack[][STACKSIZE], int sp[], int reg[][REGISTERSIZE], int next_inst
       break;
 
     case POPD : 
-      tmp = mem[cur_proc][i+1];
+      tmp = pt_getInstruction(cur_proc, i+1);
       tmp1 = pop(stack, cur_proc, sp, 10) ;
       if(tmp < 230) {   
         gmem[tmp]=tmp1;
@@ -208,14 +194,14 @@ int exe(int stack[][STACKSIZE], int sp[], int reg[][REGISTERSIZE], int next_inst
       break;
 
     case LA : 
-      tmp = mem[cur_proc][i + 1];
+      tmp = pt_getInstruction(cur_proc, i + 1);
       //load address of start of array
       push(stack,cur_proc,sp,tmp, 17);
       next_inst[cur_proc]++;
       break; 
     
     case LOAD : 
-      tmp = mem[cur_proc][i + 1];
+    tmp = pt_getInstruction(cur_proc, i+1);
       if (tmp < 230)
         tmp1 = gmem[tmp];
       else {
@@ -227,7 +213,7 @@ int exe(int stack[][STACKSIZE], int sp[], int reg[][REGISTERSIZE], int next_inst
       break;
 
     case LOADI : 
-      push(stack, cur_proc, sp, mem[cur_proc][i + 1], 21); 
+      push(stack, cur_proc, sp, pt_getInstruction(cur_proc, i + 1), 21); 
       next_inst[cur_proc]++;
       break;
     
@@ -337,7 +323,7 @@ int exe(int stack[][STACKSIZE], int sp[], int reg[][REGISTERSIZE], int next_inst
     
     case STOR: 
       tmp = pop(stack, cur_proc, sp, 68);
-      tmp1 = mem[cur_proc][i + 1];
+      tmp1 = pt_getInstruction(cur_proc, i + 1);
       if(tmp1 < 230) {
         gmem[tmp1]=tmp;
         printf("Process %d wrote to global mem in index %d, %d\n",cur_proc,tmp1,gmem[tmp1]);
@@ -372,7 +358,7 @@ int exe(int stack[][STACKSIZE], int sp[], int reg[][REGISTERSIZE], int next_inst
       
     case JFALSE: 
       tmp = pop(stack, cur_proc, sp, 74);
-      tmp2 = mem[cur_proc][i + 1];
+      tmp2 = pt_getInstruction(cur_proc, i + 1);
       if (tmp == 0)
         next_instruct[cur_proc] = tmp2 - 1; //sub one for PC in executeit()
       else 
@@ -380,13 +366,13 @@ int exe(int stack[][STACKSIZE], int sp[], int reg[][REGISTERSIZE], int next_inst
       break;
       
     case JMP: 
-      tmp = mem[cur_proc][i + 1];
+      tmp = pt_getInstruction(cur_proc, i + 1);
       next_instruct[cur_proc] = tmp - 1; //sub one for PC in executeit() 
       break;
 
     default:
       printf("illegal instruction mem[%d][%d]\n", cur_proc, i);
-      printf("(%04d:   %d)\n", i, mem[cur_proc][i]);  
+      printf("(%04d:   %d)\n", i, pt_getInstruction(cur_proc, i));  
       break;
 
   }
@@ -423,7 +409,6 @@ void push(int stack[][STACKSIZE], int proc_id, int sp[], int data, int calledfro
   stack[proc_id][sp[proc_id]]=data;
 }
 
-
 //debug routines
 void print_stack(int stack[][STACKSIZE], int sp[]) {
   int i,j;
@@ -459,110 +444,55 @@ void print_register(int reg[][REGISTERSIZE]) {
   }
 }
 
-// TODO: convert to paging
-void importMemory(char* filename) {
+void loadProgram(int programId) {
   int i;
-  int j;
-  int process;
   
-  FILE* fp;
-  
-  fp = fopen(filename, "r");  
-  
-  getString(fp);
-  pid = getInt(fp);
+  for (i = 0; i < fs_getProcessCount(programId); i++) {
+    endprog[i] = fs_getProcessSize(programId, i);
+  }
+}
 
-  for (i = 0; i < pid; i++) {
-    getString(fp);
-    process = getInt(fp);
-    
-    getString(fp);
-    endprog[i] = getInt(fp);
-    
-    int data[endprog[i]];
-    
-    for (j = 0; j <= endprog[i]; j++)
-      mem[i][j] = getInt(fp);
+void ls(char* s) {
+  int i;
+  int nodeCount = fs_getINodeCount();
+  INode* node[nodeCount];
+  
+  fs_getAllNodes(node);
+  
+  for (i = 0; i < nodeCount; i++) {
+    sprintf(s + strlen(s), "id: %3d   name: %16s  fileSize: %4d  \n", node[i]->id, node[i]->name, node[i]->fileSize);
   }
   
-  fclose(fp);
 }
 
 
 main(int argc, char **argv) {
-  int   sharedMemoryId;
-  char  c;
-  char* s;
-  char* sharedMemory;
-  
-  
-  execute = TRUE;
-
-  if(argc != 2) { 
-    fprintf(stderr, "usage: cpu <input> \n");
-    exit(0);
-  }
-  
-  if (FS_DEBUG)
-    fs_test();
-  
-  /*
-  printf("\n\n\n\n");
-  starLine();
-  printf("cpu starting...\n");
-  starLine();
-  printf("\n");
-  
-  fs_initialize();
-  pageTable_Initialize();
-  
-  if (DEBUG)
-    fs_test();
-  
-  heavyLine();
-  fs_import(argv[1]);
-  printf("\n");
-
-  heavyLine(); 
-  printf("displaying inodes... \n");
-  lightLine();
-  fs_dump();
-  printf("\n");
-  
-  heavyLine();
-  printf("displaying filesystem... \n");
-  lightLine();
-  fs_dumpAllData();
-  lightLine();
-  
   int i;
   int j;
+  int id;
   
-  int tempPageSize = 5;
-  int tempPage[tempPageSize];
-  
-    
-  printf("getFile()\n");
-  printf("displaying tempPage: \n");
-  
-  for (i = 0; i < 4; i++) {
-    fs_getFile(1, i * tempPageSize, tempPageSize, tempPage);
-  
-    for (j = 0; j < tempPageSize; j++)
-      printf("%5d", tempPage[j]);
-    printf("\n");
+  if(argc != 1) { 
+    fprintf(stderr, "usage: cpu \n");
+    exit(0);
   }
-  lightLine();
-  */
 
-  // read file into memory
-  importMemory(argv[1]);
+  system("clear");
+    
+  heavyLine();
+  printf("cpu.c started...\n");
+  heavyLine();
   
-  while(TRUE) {
-    // scheduler_nextProcess();
-    executeit();
-      
-  }
+  fs_initialize();
+  pt_initialize();
+
+  currentProgramId = fs_import("./programs.cpu/prog2out.cpu", "prog1");
+
+  fs_ls();
+  
+  loadProgram(currentProgramId);
+
+  executeit();
+
   
   
   return 0;

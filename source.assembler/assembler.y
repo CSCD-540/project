@@ -746,9 +746,13 @@ exportMemory(char* filename) {
   printf("************************************\n");
       
   fprintf(fd, "processes: %d \n", pid);
+
+  fprintf(fd, "size: ");
+  for (i = 0; i < pid; i++)
+    fprintf(fd, "%d ", endprog[i]);
+  fprintf(fd, "\n");
+
   for (i = 0; i < pid; i++) {
-    fprintf(fd, "pid: %d \n", i);
-    fprintf(fd, "end: %d \n", endprog[i]);
     for (j = 0; j <= endprog[i]; j++)
       fprintf(fd, "%d ", mem[i][j]);
     fprintf(fd, "\n");
