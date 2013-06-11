@@ -1,0 +1,17 @@
+x,y,z;
+
+process p0
+{
+  if( x==5 ) { halt; }
+}
+
+process p1
+{
+   x=0;
+   r0=0;
+   r1=5;
+   while (x<10)
+   {  x = x+1;
+   }
+}
+
