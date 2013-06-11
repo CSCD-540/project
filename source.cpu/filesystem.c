@@ -4,7 +4,7 @@
 
 #define FILESYSTEM_SIZE 4096
 #define DEFRAG 0.6
-#define FS_DEBUG 1
+#define FS_DEBUG 0
 
 int filesystem[FILESYSTEM_SIZE];
 int lastFree;//tracks last free position node
@@ -263,7 +263,7 @@ void fs_import(char* path, char* name){
   int i;
   FILE *fout=fopen(path, "r");
   int procSize[1];
-  
+
   //start by getting size
   while(!feof(fout)){
     fgets(temp, len, fout);
@@ -1058,13 +1058,13 @@ void fs_dump(){
 /**
  * Tester for the filesystem
  */
-void fs_test(){
 //void main(){
+void fs_test(){
 
-printf("SIZE: %d\n",FILESYSTEM_SIZE);
+ printf("SIZE: %d\n",FILESYSTEM_SIZE);
   
-  fs_initialize();
-fs_import("temp.txt", "prog1");
+fs_initialize();
+fs_import("./source.cpu/temp.txt", "prog1");
 fs_copy(0,"prog2");
 fs_copy(1, "prog3");
 printf("COUNT: %d\n", fs_getINodeCount());

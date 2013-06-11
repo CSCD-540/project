@@ -15,12 +15,13 @@ list:
 cpu:
 	clear
 	gcc ./source.cpu/cpu.c -o ./compiled.cpu/cpu
-
+#refused to compile with -c tag
 filesystem:
-	gcc ./source.cpu/filesystem.c -o ./compiled.cpu/filesystem
+	gcc -c ./source.cpu/filesystem.c -o ./compiled.cpu/filesystem
 
+#refused to compile because pagemanager.c did not exist. It also needed a -c tag Jared
 pagemanager:
-	gcc ./source.cpu/pagemanager.c -o ./compiled.cpu/pagemanager
+	gcc -c ./source.cpu/pagingsystem.c -o ./compiled.cpu/pagingsystem
 
 scheduler:
 	gcc ./source.cpu/scheduler.c -o ./compiled.cpu/scheduler
