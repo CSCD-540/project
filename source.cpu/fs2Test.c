@@ -95,7 +95,7 @@ int main() {
 
 
   
-  fs_close();
+  //fs_close();
 
    return 0; 
 }

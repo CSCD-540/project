@@ -72,7 +72,7 @@ void fs_copy(int fid, char* name){
   
   char buf[len];
   //copy all data to temp array
-  fs_getData(fid, buf);
+  fs_getData(fid);
   
   //get proc info
   procNum=fs_getProcessCount(fid);
@@ -141,15 +141,17 @@ int fs_getProcessCount(int id){
  * 
  * Note: currently always returns 1
  */
-int fs_getData(int id, char* buf){
+int* fs_getData(int id){
 
+ 
   int index=fs_findFile(id);
   int size=fs_findRecSize(filesystem[index-FS_LOCATION_NODE_OFFSET]);
-  fs_get(id, 0, size, buf);
-
-  //confirm if succeeded
   
-  return 1;
+  int* buf=malloc(size*sizeof(int));
+  
+  fs_get(id, 0, size, buf);
+  
+  return buf;
   
 }
 
@@ -161,9 +163,10 @@ int fs_getData(int id, char* buf){
  * 
  * Note: currently always returns 1
  */
-int fs_getPage(int id, int process, int start, int size, char* buf){
+int* fs_getPage(int id, int process, int start, int size){
  
   int procOffset=0, index, loc, i;
+  int* buf=malloc(size*sizeof(int));
   
   //get file
   index=fs_findFile(id);
@@ -179,6 +182,8 @@ int fs_getPage(int id, int process, int start, int size, char* buf){
     procOffset+=filesystem[loc+FS_PROC_VALUES_REC_OFFSET+i];
   
   fs_get(id, procOffset+start, size, buf);
+
+return buf;
   
 }
 
@@ -186,10 +191,12 @@ int fs_getPage(int id, int process, int start, int size, char* buf){
 /**
  * Imports file from host filesystem to our virtual file system.
  * 
- * Need to know how to handle proc info
+ * returns id of created file
  */
-void fs_import(char* path, char* name){
-    
+int fs_import(char* path, char* name){
+
+  fs_init();
+  
   int len=1000;
   int size=0;
   char temp[len];
@@ -224,6 +231,24 @@ void fs_import(char* path, char* name){
   fs_store(size, data, name, 1, procSize);
   
   fclose(fout);
+
+  //since was just created, it will be lastFill
+  return filesystem[lastFill-FS_DATA_NODE_OFFSET];
+}
+
+/**
+ * Creates a nameless file then returns start of record data
+ * 
+ * Note: I was not told that this would be needed. I only added it for completeness sake.
+ */
+int fs_addData(int size, int* data){
+  int procSize[1]={size};
+  int loc;
+    fs_store(size, data, 0, 1, procSize);
+
+  loc=filesystem[lastFill-FS_LOCATION_NODE_OFFSET];    
+  
+  return loc+FS_DATA_REC_OFFSET;
     
 }
 
@@ -846,7 +871,7 @@ void fs_list(){
 /**
  * Lists available filled nodes with their name and fids
  */
-void fs_nodeList(){
+void fs_ls(){
   
   //in case not initialized already
   fs_init();
@@ -899,6 +924,7 @@ void fs_getAllNodes(INode* buf){
   int hasPrev=lastFill;
   int j,id;
   int len=fs_getINodeCount();
+  INode temp;
   
   hasPrev=lastFill;
   for(j=0;hasPrev&&j<len;j++){
@@ -907,7 +933,7 @@ void fs_getAllNodes(INode* buf){
       break;
     id=filesystem[hasPrev-FS_DATA_NODE_OFFSET];
     
-    buf[j]=*(fs_getNode(id));
+    buf[j]=*fs_getNode(id);
 
     hasPrev=filesystem[hasPrev];
   }
@@ -918,7 +944,7 @@ void fs_getAllNodes(INode* buf){
  */
 INode* fs_getNode(int id){
   
-  INode toReturn;
+  INode *toReturn=malloc(sizeof(INode));
   int index, loc, i;
   
   index=fs_findFile(id);
@@ -928,29 +954,31 @@ INode* fs_getNode(int id){
   
   loc=filesystem[index-FS_LOCATION_NODE_OFFSET];
   
-  toReturn.id=filesystem[index-FS_DATA_NODE_OFFSET];
+  toReturn->id=filesystem[index-FS_DATA_NODE_OFFSET];
   
-  toReturn.name=malloc(FS_NAME_NODE_SIZE*sizeof(char *));
+  toReturn->name=malloc(FS_NAME_NODE_SIZE*sizeof(char *));
   
   //copy filename
-  for(i=FS_NAME_NODE_OFFSET;i<(FS_NAME_NODE_OFFSET+FS_NAME_NODE_SIZE)&&filesystem[index-i];i++)
-    toReturn.name[i]=filesystem[index-i];
-  toReturn.name[i-FS_NAME_NODE_OFFSET]=0;
+  for(i=0;i<FS_NAME_NODE_SIZE&&filesystem[index-i];i++)
+    toReturn->name[i]=filesystem[index-i-FS_NAME_NODE_OFFSET];
+  toReturn->name[i]=0;
     
-  toReturn.fileSize=filesystem[loc+FS_SIZE_REC_OFFSET];//length of data  
-  toReturn.fileStart=filesystem[loc];
+  toReturn->fileSize=filesystem[loc+FS_SIZE_REC_OFFSET];//length of data  
+  toReturn->fileStart=loc;
   
-  toReturn.processes=fs_getProcessCount(id);
+  toReturn->processes=fs_getProcessCount(id);
   
   //first one is special
-  toReturn.processStart[0]=loc+FS_DATA_REC_OFFSET;
+  toReturn->processStart[0]=loc+FS_DATA_REC_OFFSET;
   
-  for(i=0;i<toReturn.processes;i++){
+  for(i=0;i<toReturn->processes;i++){
     if(i>0)
-      toReturn.processStart[i]=loc+FS_DATA_REC_OFFSET+toReturn.processSize[i-1];
-    toReturn.processSize[i]=filesystem[loc+FS_PROC_VALUES_REC_OFFSET+i];
+      toReturn->processStart[i]=loc+FS_DATA_REC_OFFSET+toReturn->processSize[i-1];
+    toReturn->processSize[i]=filesystem[loc+FS_PROC_VALUES_REC_OFFSET+i];
   }
-  
+ 
+ return toReturn;
+ 
 }
 
 /**
@@ -977,7 +1005,7 @@ int fs_addFile(char* name, int fileSize, int processes, int* processStart, int* 
  * 
  * Warning, has not been fully tested
  */
-void fs_get(int fid, int offset, int length, char* toReturn){
+void fs_get(int fid, int offset, int length, int* toReturn){
 
   int dataLoc=0;
   int dataLen=0;
@@ -1014,7 +1042,7 @@ void fs_get(int fid, int offset, int length, char* toReturn){
     
 }
 
-void fs_dump(){
+void fs_dumpAllData(){
   int i;
   for(i=0;i<FILESYSTEM_SIZE;i++)
     printf("%8d", filesystem[i]);

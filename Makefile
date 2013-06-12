@@ -23,7 +23,7 @@ filesystem:
 
 filesystem2:
 	clear
-	gcc ./source.cpu/config.c ./source.cpu/fs2Test.c ./source.cpu/filesystem.c ./source.cpu/list.c ./source.cpu/inode.c -o ./compiled.cpu/fs2Test
+	gcc ./source.cpu/config.c ./source.cpu/fs2Test.c ./source.cpu/filesystem2.c ./source.cpu/list.c ./source.cpu/inode.c -o ./compiled.cpu/fs2Test
 
 pagetable:
 	clear

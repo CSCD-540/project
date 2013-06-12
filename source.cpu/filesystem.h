@@ -62,24 +62,25 @@ int fs_findFile(int fid);
 
 void fs_getRecData(int index, int* buf, int size);
 void fs_getRecMetaData(int index, int* buf, int size);
-void fs_get(int fid, int offset, int length, char* toReturn);
+void fs_get(int fid, int offset, int length, int* toReturn);
 
-void fs_dump();
+void fs_dumpAllData();
 void fs_list();
 
 //interface stuff
 void fs_initialize();
 void fs_close();//not currently used
 
-void fs_import(char* path, char* name);
+int fs_import(char* path, char* name);
 void fs_copy(int fid, char* name);
 int fs_addFile(char* name, int fileSize, int processes, int* processStart, int* processSize, int* data);
+  int fs_addData(int size, int* data);
 
 void fs_removeFile(int fid);
 void fs_removeAll();
 
-int fs_getData(int id, char* buf);
-int fs_getPage(int id, int process, int start, int size, char* buf);
+int* fs_getData(int id);
+int* fs_getPage(int id, int process, int start, int size);
 
 int fs_getINodeCount();
 INode* fs_getNode(int id);
@@ -88,9 +89,9 @@ void fs_getAllNodes();
 int fs_getProcessCount(int id);
 int fs_getProcessSize(int id, int process);
 
-void fs_nodeList();
+void fs_ls();
 
-//  void fs_dumpAllData();
+//  void fs_dump();
 //  int fs_dataIsValid(int size, int* data);
 
 

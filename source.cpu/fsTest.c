@@ -23,10 +23,8 @@ int main() {
   fs_import("./programs.cpu/prog1out.cpu", "prog1");
   fs_import("./programs.cpu/prog2out.cpu", "prog2");
   
-  fs_dump();
-  
   // list the files
-  fs_nodeList();
+  fs_ls();
 
   // remove file with id of 2
   fs_removeFile(2);
@@ -34,7 +32,7 @@ int main() {
   printf("\n");
 
   // list the files
-  fs_nodeList();
+  fs_ls();
     
   // invalid data
   int invalidData[3] = {FS_NULL, FS_NULL, FS_NULL};
@@ -45,17 +43,17 @@ int main() {
   fs_addFile("invalid data", 3, 1, pStart, pSize, invalidData);
 
   // list the files
-  fs_nodeList();
+  fs_ls();
   fs_import("./programs.cpu/prog3out.cpu", "prog2");
   
   // list the files
-  fs_nodeList();
+  fs_ls();
   
   // remove all files
   fs_removeAllFiles();
 
   // list the files
-  fs_nodeList();
+  fs_ls();
 
   fs_import("./programs.cpu/prog1out.cpu", "prog1");
   fs_import("./programs.cpu/prog2out.cpu", "prog2");
@@ -63,32 +61,32 @@ int main() {
   fs_import("./programs.cpu/prog4out.cpu", "prog4");
 
   
-  fs_nodeList();
+  fs_ls();
   fs_removeFile(6);
   heavyLine();
 
-  fs_dump();
+  fs_dumpAllData();
 
-  fs_nodeList();  
+  fs_ls();  
 
   fs_copy(5, "progA");
   
-  fs_nodeList();
+  fs_ls();
 
   // testing paging
 
   INode* node;
-  node = (INode*)fs_getNode(4);
+  node = fs_getNode(4);
 
-  char* page;
+  int* page;
   
-  page = calloc(PAGE_SIZE, sizeof(char));
+  page = calloc(PAGE_SIZE, sizeof(int));
   
   for (i = 0; i < node->processes; i++) {
     heavyLine();
     printf("process: %d \n", i);
     for (j = 0; j < (node->processSize[i] / PAGE_SIZE); j++) {
-      fs_getPage(4, i, j * PAGE_SIZE, PAGE_SIZE, page);
+      page=fs_getPage(4, i, j * PAGE_SIZE, PAGE_SIZE);
       for (k = 0; k < PAGE_SIZE; k++)
         printf("%4d ", page[k]);
       printf("\n");
@@ -99,6 +97,7 @@ int main() {
 //Since I cannot implementation of certain things at this point, we either need to have a memory leak
 //or do the following when finished with a set of inodes
   free(node->name);
+  free(node);
 
   
 //  fs_close();
