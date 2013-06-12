@@ -7,6 +7,10 @@ int  p0running;
 
 int currentProgramId;
 
+int wait_state[MAXPRO];
+int wait_time[MAXPRO];
+
+
 char getChar(FILE* fp) {
   char c;
   

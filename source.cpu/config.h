@@ -21,7 +21,7 @@
   #define FS_DEBUG         0
   #define FS_VERBOSE       0  
   #define FS_NULL         -1
-  #define FS_SIZE        200
+  #define FS_SIZE        400
   #define FS_COLUMNS      20
 
   #define PT_DEBUG         0
@@ -29,6 +29,13 @@
   #define PT_NULL         -1
   #define PAGE_SIZE        4
   #define PT_MISS         -1
+  
+  #define SC_READY        -1
+  #define SC_WAITING       1
+  #define SC_DONE_WAITING  2
+  
+  #define SC_READ_TIME   100
+  #define SC_WRITE_TIME  200
   
   #define FILE_PATH   "./programs.cpu/"
   

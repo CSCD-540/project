@@ -41,9 +41,10 @@ compile:
 	clear
 	./compiled.assembler/assembler ./programs.assembler/$(program) ./programs.cpu/$(program)
 
+# usage: make run program="prog1out"
 run:
 	clear
-	./compiled.cpu/cpu
+	./compiled.cpu/cpu ./programs.cpu/$(program).cpu
 
 runShell:
 	./compiled.cpu/shell

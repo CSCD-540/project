@@ -4,6 +4,9 @@ extern int  gmem[MAXGMEM];         // global var sit here
 extern int  mem[MAXPRO][MAXMEM];   // physical memory
 extern int  currentProgramId;
 
+extern int wait_state[MAXPRO];
+extern int wait_time[MAXPRO];
+
 int  endprog[MAXPRO];       // last instruction of proc
 int  pid = 0;               // current process id
 
@@ -34,11 +37,12 @@ executeit() {
   next_instruct[4] = 10;
   next_instruct[5] = 10;
 
-  while(1) {
-    
+  while(1) {    
 cont:
-    if(locked == UNLOCKED)
-      cur_proc = (pid == 1) ? 0:(rand()%(pid - 1)) + 1;
+    if(locked == UNLOCKED) {
+      cur_proc = scheduler_nextProcess(pid);
+      printf("current process: %d \n", cur_proc);
+    }
 
     if(proc_complete[cur_proc] == 1) {
       printf("----------------------------cur_proc: %d\n", cur_proc);
@@ -108,29 +112,6 @@ int exe(int stack[][STACKSIZE], int sp[], int reg[][REGISTERSIZE], int next_inst
 
   i = next_inst[cur_proc];
   
-  
-   /*
-   * TODO:
-   * when open, read or write case is called need to call scheduler
-   * and suspend the process.
-   * 
-   * Need to read over the case statements to find out where to
-   * insert the scheduler call.
-   * 
-   * Also I think the process should be suspended for around
-   * 30 ~ 50 cycles.
-   * 
-   * Will need to call timedown() in each case statement to make sure
-   * that the processes in the suspended queue can reduce time and
-   * get out of the queue.
-   * 
-   * Once process is suspended how to move on to the next process
-   * and how to get the suspended process back into the cpu process
-   * queue rotation.
-   */
-  
-  
-  
 
   switch (pt_getInstruction(cur_proc, i)) {
     /** OPEN, READ, CLOSE, WRITE, SEEK ::  OS services **/
@@ -144,34 +125,27 @@ int exe(int stack[][STACKSIZE], int sp[], int reg[][REGISTERSIZE], int next_inst
       printf("filename passed = %s\n", name);
       printf("OS service call  --- <OPEN>  return file descriptor!(987 is fake)\n");
       push(stack, cur_proc, sp, 987, 11); // dummy fd =987 
-      
-       //I think that the call to scheduler should be here.
-      //Also the timedown() call.
-      
-      printf("\nprocess going to suspended\n");
-      heavyLine();
-      
-      
-      scheduler_nextProcess(cur_proc, TIMEOUT_OPEN);
-      
-      //printf("\nprocess suspended\n");
-      //heavyLine();
-      scheduler_timedown();
-      
-      
-      break;
+
+    break;
       
     case READ :
-      tmp = peek(stack,cur_proc,sp, 0);
-      printf("READ,  file descriptor=%d\n", tmp); 
-      printf("OS service call  --- <READ> return int read (777 is fake)\n");
-      push(stack,cur_proc,sp, 777, 13); // dummy fd =777 
-      
-              //I think that the call to scheduler should be here.
-      //Also the timedown() call.
-      
-      //scheduler_timedown();
-      
+      /*
+      if (wait_state[cur_proc] == SC_READY || wait_time[cur_proc] == SC_READY) {
+        wait_time[cur_proc] = SC_READ_TIME;
+        wait_state[cur_proc] = SC_WAITING;
+        heavyLine();
+        printf("Attempting to READ\n");
+        printf("Process id: %d is entering wait state. \n", cur_proc);
+        heavyLine();
+      } else {
+      */
+        tmp = peek(stack,cur_proc,sp, 0);
+        printf("READ,  file descriptor=%d\n", tmp); 
+        printf("OS service call  --- <READ> return int read (777 is fake)\n");
+        push(stack,cur_proc,sp, 777, 13); // dummy fd =777 
+      /* 
+        }
+      */
       
       break;
 
@@ -182,11 +156,24 @@ int exe(int stack[][STACKSIZE], int sp[], int reg[][REGISTERSIZE], int next_inst
       break;
     
     case WRITE :
-      tmp = peek(stack, cur_proc, sp, 0);
-      printf("WRITE offset=  0,  data=%d\n", tmp); 
-      tmp1 = peek(stack, cur_proc, sp, -1) ;
-      printf("WRITE offset= -1,  fd =%d\n", tmp1); 
-      printf("OS service call  --- <WRITE> \n");
+      /*
+      if (wait_state[cur_proc] == SC_READY || wait_time[cur_proc] == SC_READY) {
+        wait_time[cur_proc] = SC_WRITE_TIME;
+        wait_state[cur_proc] = SC_WAITING;
+        heavyLine();
+        printf("Attempting to WRITE\n");
+        printf("Process id: %d is entering wait state. \n", cur_proc);
+        heavyLine();
+      } else {
+      */
+        tmp = peek(stack, cur_proc, sp, 0);
+        printf("WRITE offset=  0,  data=%d\n", tmp); 
+        tmp1 = peek(stack, cur_proc, sp, -1) ;
+        printf("WRITE offset= -1,  fd =%d\n", tmp1); 
+        printf("OS service call  --- <WRITE> \n");
+      /* 
+        }
+      */ 
       break;
 
     case SEEK :
@@ -497,8 +484,8 @@ main(int argc, char **argv) {
   int j;
   int id;
   
-  if(argc != 1) { 
-    fprintf(stderr, "usage: cpu \n");
+  if(argc != 2) { 
+    fprintf(stderr, "usage: cpu <program> \n");
     exit(0);
   }
 
@@ -508,12 +495,19 @@ main(int argc, char **argv) {
   printf("cpu.c started...\n");
   heavyLine();
   
+  getchar();
+  
   fs_initialize();
   pt_initialize();
-
-  currentProgramId = fs_import("./programs.cpu/prog2out.cpu", "prog1");
+  scheduler_init();
 
   fs_ls();
+  getchar();
+  
+  currentProgramId = fs_import(argv[1], "program");
+
+  fs_ls();
+  getchar();
   
   loadProgram(currentProgramId);
 
