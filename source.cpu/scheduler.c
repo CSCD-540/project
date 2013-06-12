@@ -20,9 +20,6 @@ int scheduler_nextProcess(int pid) {
 		if(wait_time[cur_proc] == 0) {
 			wait_state[cur_proc] = DONE_WAITING;
 			wait_time[cur_proc] = READY; //Set wait_time[cur_proc] back to READY so that the process is delayed on read and write
-			heavyLine();
-			printf("Process %d leaving waiting state\n", cur_proc);
-			heavyLine();
 		}
 	}while(wait_state[cur_proc] == WAITING); //if cur_proc state is WAITING go through the do while again
 	

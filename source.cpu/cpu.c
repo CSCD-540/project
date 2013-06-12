@@ -41,6 +41,7 @@ executeit() {
 cont:
     if(locked == UNLOCKED)
 	   cur_proc = scheduler_nextProcess(pic);
+      //cur_proc = (pid == 1) ? 0:(rand()%(pid - 1)) + 1;
 
     if(proc_complete[cur_proc] == 1) {
       printf("----------------------------cur_proc: %d\n", cur_proc);
@@ -129,9 +130,6 @@ int exe(int stack[][STACKSIZE], int sp[], int reg[][REGISTERSIZE], int next_inst
  	  if(wait_state[cur_proc] == READY || wait_time[cur_proc] == READY) {
 		wait_time[cur_proc] = 100;
 		wait_state[cur_proc] = WAITING;
-		heavyLine();
-		printf("Process %d is entering waiting state\n", cur_proc);
-		heavyLine();
 	  }
       else
       tmp = peek(stack,cur_proc,sp, 0);
@@ -151,9 +149,6 @@ int exe(int stack[][STACKSIZE], int sp[], int reg[][REGISTERSIZE], int next_inst
 	  if(wait_state[cur_proc] == READY || wait_time[cur_proc] == READY) {
 		wait_time[cur_proc] = 100;
 		wait_state[cur_proc] = WAITING;
-		heavyLine();
-		printf("Process %d is entering waiting state\n", cur_proc);
-		heavyLine();
 	  }
       else
       tmp = peek(stack, cur_proc, sp, 0);
