@@ -496,6 +496,11 @@ main(int argc, char **argv) {
   fs_initialize();
   pt_initialize();
   scheduler_init();
+  // initialize shared memory
+
+  // loop
+  // read memory
+  // using if statements execute the command
 
   fs_ls();
   getchar();
