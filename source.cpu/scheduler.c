@@ -18,12 +18,17 @@ int scheduler_nextProcess(int pid) {
   do {
     cur_proc = (pid == 1) ? 0 : (rand() % (pid -1)) + 1;
     
-    if (wait_time[cur_proc] > 0) 
+    if (wait_time[cur_proc] > 0) {
+      lightLine();
+      printf("process: %d is waiting for %d cycles.\n", pid, wait_time[cur_proc]);
+      lightLine();
+      
       wait_time[cur_proc]--;
-    
+    }
+        
     if (wait_time[cur_proc] == 0) {
       wait_state[cur_proc] = SC_DONE_WAITING;
-      wait_time[cur_proc] = SC_READY;
+      wait_time[cur_proc] = 0;
       heavyLine();
       printf("Process %d leaving wait state.\n", cur_proc);
       heavyLine();

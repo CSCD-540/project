@@ -129,23 +129,22 @@ int exe(int stack[][STACKSIZE], int sp[], int reg[][REGISTERSIZE], int next_inst
     break;
       
     case READ :
-      /*
-      if (wait_state[cur_proc] == SC_READY || wait_time[cur_proc] == SC_READY) {
+      
+      if (wait_state[cur_proc] == SC_READY) {
         wait_time[cur_proc] = SC_READ_TIME;
         wait_state[cur_proc] = SC_WAITING;
         heavyLine();
         printf("Attempting to READ\n");
         printf("Process id: %d is entering wait state. \n", cur_proc);
         heavyLine();
+        next_inst[cur_proc]--;
       } else {
-      */
+      
         tmp = peek(stack,cur_proc,sp, 0);
         printf("READ,  file descriptor=%d\n", tmp); 
         printf("OS service call  --- <READ> return int read (777 is fake)\n");
         push(stack,cur_proc,sp, 777, 13); // dummy fd =777 
-      /* 
         }
-      */
       
       break;
 
@@ -156,24 +155,21 @@ int exe(int stack[][STACKSIZE], int sp[], int reg[][REGISTERSIZE], int next_inst
       break;
     
     case WRITE :
-      /*
-      if (wait_state[cur_proc] == SC_READY || wait_time[cur_proc] == SC_READY) {
+      if (wait_state[cur_proc] == SC_READY) {
         wait_time[cur_proc] = SC_WRITE_TIME;
         wait_state[cur_proc] = SC_WAITING;
         heavyLine();
         printf("Attempting to WRITE\n");
         printf("Process id: %d is entering wait state. \n", cur_proc);
         heavyLine();
+        next_instruct[cur_proc]--;
       } else {
-      */
         tmp = peek(stack, cur_proc, sp, 0);
         printf("WRITE offset=  0,  data=%d\n", tmp); 
         tmp1 = peek(stack, cur_proc, sp, -1) ;
         printf("WRITE offset= -1,  fd =%d\n", tmp1); 
         printf("OS service call  --- <WRITE> \n");
-      /* 
         }
-      */ 
       break;
 
     case SEEK :

@@ -18,14 +18,14 @@
   #define ENDPROCESS       3
   #define p0WRITE          4  // tells p0 to run-p0 should only run after a write to gmem
 
-  #define FS_DEBUG         1
+  #define FS_DEBUG         0
   #define FS_VERBOSE       0  
   #define FS_NULL         -1
   #define FS_SIZE        400
   #define FS_COLUMNS      20
 
-  #define PT_DEBUG         1
-  #define PT_VERBOSE       1
+  #define PT_DEBUG         0
+  #define PT_VERBOSE       0
   #define PT_NULL         -1
   #define PAGE_SIZE        4
   #define PT_MISS         -1
