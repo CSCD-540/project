@@ -126,9 +126,9 @@ int exe(int stack[][STACKSIZE], int sp[], int reg[][REGISTERSIZE], int next_inst
       break;
       
     case READ :
-	  //If it is a processes first time to READ then simulate a wait
- 	  if(wait_state[cur_proc] == READY || wait_time[cur_proc] == READY) {
+	  if(wait_time[cur_proc] == READY) {
 		wait_time[cur_proc] = 100;
+		//printf("\n\ncpu READ wait_time[cur_proc]: %d\n\n", wait_time[cur_proc]);
 		wait_state[cur_proc] = WAITING;
 	  }
       else
@@ -145,8 +145,7 @@ int exe(int stack[][STACKSIZE], int sp[], int reg[][REGISTERSIZE], int next_inst
       break;
     
     case WRITE :
-	  //If it is a processes first time to WRITE simulate wait
-	  if(wait_state[cur_proc] == READY || wait_time[cur_proc] == READY) {
+	  if(wait_time[cur_proc] == READY) {
 		wait_time[cur_proc] = 100;
 		wait_state[cur_proc] = WAITING;
 	  }
