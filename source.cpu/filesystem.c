@@ -1,41 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#define FILESYSTEM_SIZE 4096
-#define DEFRAG 0.6
-#define FS_DEBUG 0
-
-int filesystem[FILESYSTEM_SIZE];
-int lastFree;//tracks last free position node
-int lastFill;//tracks last filled position node
-int lastFid;//tracks last file pointer assigned
-int end;//tracks end of meta data
-int freeSpace;//tracks space not used, this will be useful for determining when to defragment
-
-/**
- * offset constants
- * All are defined as positive values, so node offsets should be subtracted
- * FS_PREV_NODE_OFFSET or FS_PREV_REC_OFFSET are not used, but they are included in case they are needed in the future
- */
-#define FS_PREV_REC_OFFSET 0
-#define FS_NEXT_REC_OFFSET 1
-#define FS_FID_REC_OFFSET 2
-#define FS_SIZE_REC_OFFSET 3
-#define FS_PROC_COUNT_REC_OFFSET 4
-#define FS_PROC_VALUES_REC_OFFSET 5
-#define FS_PROC_SIZE 6
-#define FS_DATA_REC_OFFSET (FS_PROC_VALUES_REC_OFFSET+FS_PROC_SIZE)
-#define FS_PREV_NODE_OFFSET 0
-#define FS_NEXT_NODE_OFFSET 1
-#define FS_NAME_NODE_OFFSET 2
-#define FS_NAME_NODE_SIZE 16
-#define FS_DATA_NODE_OFFSET (FS_NAME_NODE_OFFSET+FS_NAME_NODE_SIZE)
-#define FS_LOCATION_NODE_OFFSET (1+FS_NAME_NODE_OFFSET+FS_NAME_NODE_SIZE)
-
-/**
- * Search for IFACE to find interface items
- */
+#include "filesystem.h"
 
 /**
  * Description of structure for record
@@ -57,37 +23,7 @@ int freeSpace;//tracks space not used, this will be useful for determining when 
  * End
  */
 
-/**
- * prototypes
- */
-void fs_init();
-void fs_store(int len, void* data, char* name, int numOfProc, int* procSizes);
-void fs_addFree(int index);
-void fs_addFill(int index);
-int fs_defragCheck();
-void fs_defrag();
-void fs_nonFragment(int len, void* data, char* name, int numOfProc, int* procSizes);
-void fs_fragment();//not currently used
-int fs_findRecSize(int index);
-void fs_getRecData(int index, int* buf, int size);
-void fs_getRecMetaData(int index, int* buf, int size);
-void fs_dump();
-void fs_get(int fid, int offset, int length, char* toReturn);
-int fs_findFile(int fid);
-void fs_list();
-//interface stuff
-void fs_import(char* path, char* name);
-void fs_removeFile(int fid);
-void fs_removeAll();
-void fs_initialize();
-void fs_close();//not currently used
-int getData(int id, char* buf);
-int getPage(int id, int process, int start, int size, char* buf);
-int fs_getINodeCount();
-int fs_getProcessCount(int id);
-int fs_getProcessSize(int id, int process);
-void fs_copy(int fid, char* name);
-void fs_nodeList();
+
 /**
  * TODO
  * move interface items to different file
@@ -131,14 +67,12 @@ void fs_copy(int fid, char* name){
   
   if(index==-1)
     return;
-  
   //get length
   len=fs_findRecSize(filesystem[index-FS_LOCATION_NODE_OFFSET]);
   
   char buf[len];
-  
   //copy all data to temp array
-  getData(fid, buf);
+  fs_getData(fid, buf);
   
   //get proc info
   procNum=fs_getProcessCount(fid);
@@ -207,7 +141,7 @@ int fs_getProcessCount(int id){
  * 
  * Note: currently always returns 1
  */
-int getData(int id, char* buf){
+int fs_getData(int id, char* buf){
 
   int index=fs_findFile(id);
   int size=fs_findRecSize(filesystem[index-FS_LOCATION_NODE_OFFSET]);
@@ -227,7 +161,7 @@ int getData(int id, char* buf){
  * 
  * Note: currently always returns 1
  */
-int getPage(int id, int process, int start, int size, char* buf){
+int fs_getPage(int id, int process, int start, int size, char* buf){
  
   int procOffset=0, index, loc, i;
   
@@ -296,7 +230,7 @@ void fs_import(char* path, char* name){
 /**
  * Deletes all files
  */
-void fs_removeAll(){
+void fs_removeAllFiles(){
   int curr;
   
   fs_init();
@@ -440,10 +374,9 @@ void fs_nonFragment(int len, void* data, char* name, int numOfProc, int* procSiz
       
     prev=filesystem[lastFill];
     loc=filesystem[prev-FS_LOCATION_NODE_OFFSET];//location of prev data
-    filesystem[lastFill-FS_LOCATION_NODE_OFFSET]=filesystem[loc+FS_SIZE_REC_OFFSET]+FS_DATA_REC_OFFSET+loc;//size of prev data plus 4 (for header info)+location of prev data
+    filesystem[lastFill-FS_LOCATION_NODE_OFFSET]=filesystem[loc+FS_SIZE_REC_OFFSET]+FS_DATA_REC_OFFSET+loc ;//size of prev data plus data rec offset (for header info)+location of prev data
     
     loc=filesystem[lastFill-FS_LOCATION_NODE_OFFSET];//setting loc for next entry
-    
     
     filesystem[FILESYSTEM_SIZE-2]=end;
     filesystem[FILESYSTEM_SIZE-3]=lastFid;
@@ -454,7 +387,7 @@ void fs_nonFragment(int len, void* data, char* name, int numOfProc, int* procSiz
     filesystem[loc+FS_NEXT_REC_OFFSET]=-1;
     filesystem[loc+FS_FID_REC_OFFSET]=filesystem[lastFill-FS_DATA_NODE_OFFSET];//set fid
     filesystem[loc+FS_SIZE_REC_OFFSET]=len;
-
+    
      //setting proc info
     filesystem[loc+FS_PROC_COUNT_REC_OFFSET]=numOfProc;
     for(i=0;i<numOfProc;i++)
@@ -707,7 +640,7 @@ void fs_defrag(){
     //new offset
     filesystem[items[i][0]-FS_LOCATION_NODE_OFFSET]=k;
     //copy metadata into new position
-    for(j=0;j<(FS_SIZE_REC_OFFSET+1);j++){
+    for(j=0;j<(FS_DATA_REC_OFFSET);j++){
       filesystem[k]=metaData[i][j];
       k++;
     }
@@ -893,7 +826,7 @@ void fs_list(){
   
   //in case not initialized already
   fs_init();
- 
+  
   int hasPrev=lastFill;
   
   printf("Filled list:\n");
@@ -921,11 +854,11 @@ void fs_nodeList(){
   int hasPrev=lastFill;
   int i;
   
-  printf("Filled list:\n");
+  printf("\nFilled list:\n");
   while(hasPrev){
     printf("Name: ");
-    for(i=0;filesystem[hasPrev-FS_NAME_NODE_OFFSET+i]&&i<FS_NAME_NODE_SIZE;i++)
-      printf("%c", filesystem[hasPrev-FS_NAME_NODE_OFFSET+i]);
+    for(i=0;filesystem[hasPrev-FS_NAME_NODE_OFFSET-i]&&i<FS_NAME_NODE_SIZE;i++)
+      printf("%c", filesystem[hasPrev-FS_NAME_NODE_OFFSET-i]);
     
     printf(" FID: %d\n",filesystem[hasPrev-FS_DATA_NODE_OFFSET]);
     hasPrev=filesystem[hasPrev];
@@ -938,21 +871,6 @@ void fs_nodeList(){
     hasPrev=filesystem[hasPrev];
   }
 }
-
-/**
- * This struct should be moved to a different file. Possibly filesystem_intf.h.
- * 
- * fid: The unique identifier for an inode as used by the filesystem
- * filename: The name of the file as a string
- * length: The number of 'words' in the inode, a word is an int in our filesystem
- * 
- */
-typedef struct {
-  int fid;
-  int filename[FS_NAME_NODE_SIZE];
-  int length;
-}inode;
-
 
 /**
  * Returns number of filled inodes
@@ -974,33 +892,81 @@ int fs_getINodeCount(){
  * Returns a list of filled inodes in the filesystem
  * a buffer needs to be supplied
  */
-void fs_list_intf(inode* buf, int len){
+void fs_getAllNodes(INode* buf){
   //in case not initialized already
   fs_init();
  
   int hasPrev=lastFill;
-  int dataLoc=0;
-  int i,j;
-    
-  j=0;
+  int j,id;
+  int len=fs_getINodeCount();
+  
   hasPrev=lastFill;
-  while(hasPrev&&j<len){
-    len--;
+  for(j=0;hasPrev&&j<len;j++){
+
     if(len<0)
       break;
-    buf[len].fid=filesystem[hasPrev-FS_DATA_NODE_OFFSET];
-    //copy filename
-      for(i=FS_NAME_NODE_OFFSET;i<(FS_NAME_NODE_OFFSET+FS_NAME_NODE_SIZE)&&filesystem[hasPrev-i];i++)
-	buf[len].filename[i]=filesystem[hasPrev-i];
-     buf[len].filename[i-FS_NAME_NODE_OFFSET]=0;
+    id=filesystem[hasPrev-FS_DATA_NODE_OFFSET];
     
-    dataLoc=filesystem[hasPrev-FS_LOCATION_NODE_OFFSET];//location of data
-    buf[len].length=filesystem[dataLoc+FS_SIZE_REC_OFFSET];//length of data
+    buf[j]=*(fs_getNode(id));
 
     hasPrev=filesystem[hasPrev];
-    j++;
   }
 }
+
+/**
+ * Returns an INode with a fid of id
+ */
+INode* fs_getNode(int id){
+  
+  INode toReturn;
+  int index, loc, i;
+  
+  index=fs_findFile(id);
+  
+  if(index==-1)
+    return 0;
+  
+  loc=filesystem[index-FS_LOCATION_NODE_OFFSET];
+  
+  toReturn.id=filesystem[index-FS_DATA_NODE_OFFSET];
+  
+  toReturn.name=malloc(FS_NAME_NODE_SIZE*sizeof(char *));
+  
+  //copy filename
+  for(i=FS_NAME_NODE_OFFSET;i<(FS_NAME_NODE_OFFSET+FS_NAME_NODE_SIZE)&&filesystem[index-i];i++)
+    toReturn.name[i]=filesystem[index-i];
+  toReturn.name[i-FS_NAME_NODE_OFFSET]=0;
+    
+  toReturn.fileSize=filesystem[loc+FS_SIZE_REC_OFFSET];//length of data  
+  toReturn.fileStart=filesystem[loc];
+  
+  toReturn.processes=fs_getProcessCount(id);
+  
+  //first one is special
+  toReturn.processStart[0]=loc+FS_DATA_REC_OFFSET;
+  
+  for(i=0;i<toReturn.processes;i++){
+    if(i>0)
+      toReturn.processStart[i]=loc+FS_DATA_REC_OFFSET+toReturn.processSize[i-1];
+    toReturn.processSize[i]=filesystem[loc+FS_PROC_VALUES_REC_OFFSET+i];
+  }
+  
+}
+
+/**
+ * Takes a file and adds it to the database then returns the file id.
+ */
+int fs_addFile(char* name, int fileSize, int processes, int* processStart, int* processSize, int* data){
+  
+  fs_init();
+  //not sure what to do with processStart I don't think I need it  
+  fs_store(fileSize, data, name, processes, processSize);
+  
+  //id will be the lastFill-FS_DATA_NODE_OFFSET since it was the last filled
+  return filesystem[lastFill-FS_DATA_NODE_OFFSET];
+  
+}
+
 
 /**
  * Returns data based upon a file id. It takes data from the offset to the length, assuming offset+length < the total file length
@@ -1051,7 +1017,7 @@ void fs_get(int fid, int offset, int length, char* toReturn){
 void fs_dump(){
   int i;
   for(i=0;i<FILESYSTEM_SIZE;i++)
-    printf("%c ", filesystem[i]);
+    printf("%8d", filesystem[i]);
 }
 
 
@@ -1069,7 +1035,7 @@ fs_copy(0,"prog2");
 fs_copy(1, "prog3");
 printf("COUNT: %d\n", fs_getINodeCount());
 fs_removeFile(0);
-fs_removeAll();
+fs_removeAllFiles();
 /*  int a[1]={1};
   int b[2]={1,2};
   int c[3]={1,2,3};
