@@ -21,8 +21,8 @@ int main() {
   
   // import programs
   fs_import("./programs.cpu/prog1out.cpu", "prog1");
-  fs_nodeList();
-  fs_dump();
+  fs_ls();
+  fs_dumpAllData();
   
   pt_dump();
 

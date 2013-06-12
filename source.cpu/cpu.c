@@ -40,7 +40,7 @@ executeit() {
     
 cont:
     if(locked == UNLOCKED)
-	   cur_proc = scheduler_nextProcess(pid);//assuming this meant to be pid
+	   cur_proc = scheduler_nextProcess(pic);
 
     if(proc_complete[cur_proc] == 1) {
       printf("----------------------------cur_proc: %d\n", cur_proc);
