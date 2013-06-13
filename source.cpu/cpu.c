@@ -94,7 +94,7 @@ cont:
 
     //check if all processes are done
 checkdone:
-    for (cur_proc = 1; cur_proc < pid; cur_proc++)
+    for (cur_proc = 1; cur_proc < fs_getProcessCount(currentProgramId); cur_proc++)
       if (proc_complete[cur_proc] == 0)
          goto cont;
     //exit(0);
@@ -425,7 +425,7 @@ void push(int stack[][STACKSIZE], int proc_id, int sp[], int data, int calledfro
 //debug routines
 void print_stack(int stack[][STACKSIZE], int sp[]) {
   int i,j;
-  for (i = 0; i < pid; i++) {
+  for (i = 0; i < fs_getProcessCount(currentProgramId); i++) {
     printf("Stack contents for process %d\n", i);
     for (j = 0; j < STACKSIZE; j++)
       printf("%d\n",stack[i][j]);
@@ -447,7 +447,7 @@ void print_gmem() {
 void print_register(int reg[][REGISTERSIZE]) {
   int i,j;
   printf("Register data\n");
-  for (i = 0; i < pid; i++) {
+  for (i = 0; i < fs_getProcessCount(currentProgramId); i++) {
     printf("Process %d: ",i);
     
     for (j = 0; j < REGISTERSIZE; j++)
@@ -556,7 +556,7 @@ main(int argc, char **argv) {
       firstVar = strtok(sm_copy, " ");
       secondVar = strtok(sm_copy, " ");
 
-      fs_import(firstVar, secondVar);
+      currentProgramId = fs_import(firstVar, secondVar);
     }
     else if(strncmp(command, "rm", 2) == 0) {
       int fileID = (int) strtok(sm_copy, " ");

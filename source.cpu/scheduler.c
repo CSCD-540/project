@@ -14,13 +14,9 @@ void scheduler_init() {
 
 int scheduler_nextProcess(int pid) {
   int cur_proc;
-  
-  //int x = (rand() % (fs_getProcessCount(pid)));
-  
-  //printf("\n\nrandom number %d\n\n", x);
-  
+
   do {
-    cur_proc = (fs_getProcessCount(pid) == 1) ? 0 : (rand() % (fs_getProcessCount(pid)));
+    cur_proc = (fs_getProcessCount(pid) == 1) ? 0 : rand() % (fs_getProcessCount(pid));
     
     
     if (wait_time[cur_proc] > 0) {
