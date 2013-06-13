@@ -471,11 +471,11 @@ main(int argc, char **argv) {
   int j;
   int id;
   
-  if(argc != 1) { 
-    fprintf(stderr, "usage: cpu \n");
-    exit(0);
-  }
-
+  //if(argc != 1) { 
+  //  fprintf(stderr, "usage: cpu \n");
+  //  exit(0);
+  //}
+  
   system("clear");
     
   heavyLine();
@@ -485,8 +485,12 @@ main(int argc, char **argv) {
   fs_initialize();
   pt_initialize();
 
-  currentProgramId = fs_import("./programs.cpu/prog2out.cpu", "prog1");
-
+  if(argc==1)
+    currentProgramId = fs_import("./programs.cpu/prog2out.cpu", "prog1");
+  if(argc==2)
+    currentProgramId = fs_import(argv[1], "prog1");
+  if(argc>2)
+    currentProgramId = fs_import(argv[1], argv[2]);
   fs_ls();
   
   loadProgram(currentProgramId);
