@@ -471,9 +471,13 @@ void ls(char* s) {
   INode* node[nodeCount];
   
   fs_getAllNodes(node);
-  
-  for (i = 0; i < nodeCount; i++) {
-    sprintf(s + strlen(s), "id: %3d   name: %16s  fileSize: %4d  \n", node[i]->id, node[i]->name, node[i]->fileSize);
+
+  if (nodeCount == 0)
+    strcpy(s, "empty");
+  else {
+    for (i = 0; i < nodeCount; i++) {
+      sprintf(s + strlen(s), "id: %3d   name: %16s  fileSize: %4d  \n", node[i]->id, node[i]->name, node[i]->fileSize);
+    }
   }
   
 }
@@ -519,14 +523,18 @@ main(int argc, char **argv) {
   // clear the memory
   memset(sm_space, 0, SM_SIZE);
 
-  char *command = malloc(10 * sizeof(char));
-  char *firstVar = malloc(128 * sizeof(char));
-  char *secondVar = malloc(128 * sizeof(char));
+  char* sm_copy = malloc(128 * sizeof(char));
+  char* lsList = malloc(128 * sizeof(char));
+
+  char* command = malloc(10 * sizeof(char));
+  char* firstVar = malloc(128 * sizeof(char));
+  char* secondVar = malloc(128 * sizeof(char));
 
   strcpy(sm_space, "start");
   
   loop = TRUE;
   while (loop) {
+    strcpy(sm_copy, sm_space);
     command = strtok(sm_space, " ");
 
     if (strncmp(command, "q", 1) == 0) {
@@ -534,35 +542,35 @@ main(int argc, char **argv) {
       printf("received: %s", sm_space);
     }
     else if(strncmp(command, "ls", 2) == 0) {
-      char* lsList;
       ls(lsList);
 
+      printf("%s", lsList);
       printf("file listing: \n%s\n", lsList);
       strcpy(sm_space, lsList);
     } //end if
-/*
+
     else if(strncmp(command, "open", 4) == 0) {
       
     }
     else if(strncmp(command, "import", 6) == 0) {
-      char* path = strtok(s, " ");
-      char* name = strtok(s, " ");
+      firstVar = strtok(sm_copy, " ");
+      secondVar = strtok(sm_copy, " ");
 
-      fs_import(path, name);
+      fs_import(firstVar, secondVar);
     }
     else if(strncmp(command, "rm", 2) == 0) {
-      int fileID = (int) strtok(s, " ");
+      int fileID = (int) strtok(sm_copy, " ");
 
       fs_removeFile(fileID);
     }
     else if(strncmp(command, "copy", 4) == 0) {
-      int fileID = (int) strtok(s, " ");
-      char* name = strtok(s, " ");
+      int fileID = (int) strtok(sm_copy, " ");
+      secondVar = strtok(sm_copy, " ");
 
-      fs_copy(fileID, name);
+      fs_copy(fileID, secondVar);
     }
     else if(strncmp(command, "load", 4) == 0) {
-      int fileID = (int) strtok(s, " ");
+      int fileID = (int) strtok(sm_copy, " ");
 
       loadProgram(fileID);
     }
@@ -573,16 +581,18 @@ main(int argc, char **argv) {
       fs_dump();
     }
     else if(strncmp(command, "cat", 3) == 0) {
-      char* s = sm_space;
 
-      cat(s);
     }
     else if(strncmp(command, "help", 4) == 0) {
       //help();
     }
-*/
-  } //end while
 
+  } //end while
+/*
+  free(command);
+  free(firstVar);
+  free(secondVar);
+*/
 /* commented out to get the CPU to run with shell
   fs_ls();
   getchar();
