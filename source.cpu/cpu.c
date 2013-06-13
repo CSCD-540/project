@@ -519,66 +519,69 @@ main(int argc, char **argv) {
   // clear the memory
   memset(sm_space, 0, SM_SIZE);
   
-  // read user input from client and print to screen
+  //This is all the logic for the shell. Some of it is not implemented
+  //all the way since I do not know the complete work up for some of the
+  //other systems.
   loop = TRUE;
   while (loop) {
-    if (strncmp(sm_space, "q", 1) == 0) {
+    char* s = sm_space;
+    char* command;
+    //get the command from the string
+    command = strtok(s, " ");
+
+    if (strncmp(command, "q", 1) == 0) {
       loop = FALSE;
       printf("received: %s", sm_space);
     }
-    else if(strncmp(sm_space, "ls", 1) == 0) {
-      char* s = sm_space;
-      //remove the command from the front of the line
-      int x;
-      for(x = 0; x < 2; x++) {
-          s[x] = ' ';
-      } //end for
-      printf("received: %s", sm_space);
+    else if(strncmp(command, "ls", 2) == 0) {
+      char* lsList = strtok(s, " ");
       
-      ls(s);
+      ls(lsList);
 
-      printf("file listing: \n%s\n", s);
-      strcpy(sm_space, s);
+      printf("file listing: \n%s\n", lsList);
+      strcpy(sm_space, lsList);
     } //end if
-
-    else if(strncmp(sm_space, "open", 4) == 0) {
+/*
+    else if(strncmp(command, "open", 4) == 0) {
       
     }
-    else if(strncmp(sm_space, "import", 6) == 0) {
-      char* s = sm_space;
+    else if(strncmp(command, "import", 6) == 0) {
+      char* path = strtok(s, " ");
+      char* name = strtok(s, " ");
 
-      fs_import(s, s);
+      fs_import(path, name);
     }
-    else if(strncmp(sm_space, "rm", 2) == 0) {
-      char* s = sm_space;
+    else if(strncmp(command, "rm", 2) == 0) {
+      int fileID = (int) strtok(s, " ");
 
-      fs_rm(s);
+      fs_removeFile(fileID);
     }
-    else if(strncmp(sm_space, "copy", 4) == 0) {
-      char* s = sm_space;
-      
-      fs_copy();
-    }
-    else if(strncmp(sm_space, "load", 4) == 0) {
-      char* s = sm_space;
+    else if(strncmp(command, "copy", 4) == 0) {
+      int fileID = (int) strtok(s, " ");
+      char* name = strtok(s, " ");
 
-      load(s);
+      fs_copy(fileID, name);
     }
-    else if(strncmp(sm_space, "run", 3) == 0) {
+    else if(strncmp(command, "load", 4) == 0) {
+      int fileID = (int) strtok(s, " ");
+
+      loadProgram(fileID);
+    }
+    else if(strncmp(command, "run", 3) == 0) {
       executeit();
     }
-    else if(strncmp(sm_space, "dump", 4) == 0) {
+    else if(strncmp(command, "dump", 4) == 0) {
       fs_dump();
     }
-    else if(strncmp(sm_space, "cat", 3) == 0) {
+    else if(strncmp(command, "cat", 3) == 0) {
       char* s = sm_space;
 
       cat(s);
     }
-    else if(strncmp(sm_space, "help", 4) == 0) {
-      help();
+    else if(strncmp(command, "help", 4) == 0) {
+      //help();
     }
-
+*/
   } //end while
 
 /* commented out to get the CPU to run with shell
