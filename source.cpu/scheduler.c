@@ -25,7 +25,7 @@ int scheduler_nextProcess(int pid) {
 			heavyLine();
 		}
 	}while(wait_state[cur_proc] == WAITING); //if cur_proc state is WAITING go through the do while again
-		
+	
 	return cur_proc;
 
 } //end of nextProcess
