@@ -109,7 +109,11 @@ int exe(int stack[][STACKSIZE], int sp[], int reg[][REGISTERSIZE], int next_inst
   char name[11];
 
   i = next_inst[cur_proc]; 
+<<<<<<< HEAD
   
+=======
+
+>>>>>>> parent of dbaa0a9... filesystem now works equally well as filesystem2 for all progs except prog3, added debugging flags to makefile, all other changes should be minor
   switch (pt_getInstruction(cur_proc, i)) {
     /** OPEN, READ, CLOSE, WRITE, SEEK ::  OS services **/
     case OPEN :
@@ -484,6 +488,7 @@ main(int argc, char **argv) {
   
   fs_initialize();
   pt_initialize();
+<<<<<<< HEAD
   
   if(argc==1)
     currentProgramId = fs_import("./programs.cpu/prog3out.cpu", "prog1");
@@ -491,6 +496,12 @@ main(int argc, char **argv) {
     currentProgramId = fs_import(argv[1], "prog1");
   if(argc>2)
     currentProgramId = fs_import(argv[1], argv[2]);
+=======
+
+  currentProgramId = fs_import("./programs.cpu/prog2out.cpu", "prog1");
+
+  fs_ls();
+>>>>>>> parent of dbaa0a9... filesystem now works equally well as filesystem2 for all progs except prog3, added debugging flags to makefile, all other changes should be minor
   
   loadProgram(currentProgramId);
 

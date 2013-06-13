@@ -199,47 +199,38 @@ int fs_import(char* path, char* name){
   
   int len=1000;
   int size=0;
-  int numOfProc;
   char temp[len];
   //char data[size];
-  
-  int i,j,val;
-  
+  int i;
   FILE *fout=fopen(path, "r");
-  //int procSize[numOfProc];
+  int procSize[1];
 
-  //get number of processes
-  fscanf(fout, "%s %d \n", temp, &numOfProc);
-  
-  int procSize[numOfProc];
-  
-  //get process sizes
-  fscanf(fout, "%s ", temp);
-  for(i=0;i<numOfProc;i++){
-    fscanf(fout, "%d ", &j);
-    procSize[i]=j+1;
-    size+=procSize[i];
+  //start by getting size
+  while(!feof(fout)){
+    fgets(temp, len, fout);
+    size+=strlen(temp);
   }
-  fscanf(fout, "\n");
   
-  int data[size];
+  char data[size];
   size=0;
   
-  //fill data
-  for(i=0;i<numOfProc;i++){
-    for(j=0;j<procSize[i];j++){
-      fscanf(fout, "%d", &val);
-      data[size+j]=val;
-    }
-    size+=procSize[i];
-    fscanf(fout, "\n");
-  }
-
-  fclose(fout);
-    
-    fs_store(size, data, name, numOfProc, procSize);
+  //go to beginning of file
+  rewind(fout);
   
-
+  //fill data
+  while(!feof(fout)){
+    
+    fgets(temp, len, fout);
+    for(i=0;i<strlen(temp);i++)
+      data[size+i]=temp[i];
+    size+=strlen(temp);
+  }
+  
+  procSize[0]=size;
+  
+  fs_store(size, data, name, 1, procSize);
+  
+  fclose(fout);
 
   //since was just created, it will be lastFill
   return filesystem[lastFill-FS_DATA_NODE_OFFSET];
@@ -352,7 +343,7 @@ void fs_store(int len, void* data, char* name, int numOfProc, int* procSizes){
       
     //copy data
     for(i=0;i<len;i++)
-      filesystem[loc+FS_DATA_REC_OFFSET+i]=*(((int*)data)+i);
+      filesystem[loc+FS_DATA_REC_OFFSET+i]=*(((char*)data)+i);
       
     filesystem[lastFill-FS_LOCATION_NODE_OFFSET]=0;//since no records, start at beginning
     end=lastFill;//last record of meta data
@@ -429,7 +420,7 @@ void fs_nonFragment(int len, void* data, char* name, int numOfProc, int* procSiz
 
     //fill in data
     for(i=0;i<len;i++){
-      filesystem[loc+FS_DATA_REC_OFFSET+i]=*(((int*)data)+i);
+      filesystem[loc+FS_DATA_REC_OFFSET+i]=*(((char*)data)+i);
     }
     //adjust freespace
     freeSpace-=(len+FS_LOCATION_NODE_OFFSET+FS_DATA_REC_OFFSET+1);
@@ -926,7 +917,7 @@ int fs_getINodeCount(){
  * Returns a list of filled inodes in the filesystem
  * a buffer needs to be supplied
  */
-void fs_getAllNodes(INode *buf[]){
+void fs_getAllNodes(INode* buf){
   //in case not initialized already
   fs_init();
  
@@ -942,7 +933,7 @@ void fs_getAllNodes(INode *buf[]){
       break;
     id=filesystem[hasPrev-FS_DATA_NODE_OFFSET];
     
-    buf[j]=fs_getNode(id);
+    buf[j]=*fs_getNode(id);
 
     hasPrev=filesystem[hasPrev];
   }
