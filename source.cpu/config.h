@@ -21,7 +21,7 @@
   #define FS_DEBUG         0
   #define FS_VERBOSE       0  
   #define FS_NULL         -1
-  #define FS_SIZE        400
+  #define FS_SIZE        200
   #define FS_COLUMNS      20
 
   #define PT_DEBUG         0

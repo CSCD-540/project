@@ -110,8 +110,6 @@ int exe(int stack[][STACKSIZE], int sp[], int reg[][REGISTERSIZE], int next_inst
 
   i = next_inst[cur_proc]; 
 
-  printf("\ni: %d cur_proc: %d\n", i, cur_proc);
-  
   switch (pt_getInstruction(cur_proc, i)) {
     /** OPEN, READ, CLOSE, WRITE, SEEK ::  OS services **/
     case OPEN :
@@ -486,10 +484,10 @@ main(int argc, char **argv) {
   
   fs_initialize();
   pt_initialize();
-  
-  currentProgramId = fs_import("./programs.cpu/prog3out.cpu", "prog1");
-    
-  fs_dumpAllData();
+
+  currentProgramId = fs_import("./programs.cpu/prog2out.cpu", "prog1");
+
+  fs_ls();
   
   loadProgram(currentProgramId);
 
