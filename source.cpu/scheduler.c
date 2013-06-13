@@ -15,12 +15,17 @@ void scheduler_init() {
 int scheduler_nextProcess(int pid) {
   int cur_proc;
   
+  //int x = (rand() % (fs_getProcessCount(pid)));
+  
+  //printf("\n\nrandom number %d\n\n", x);
+  
   do {
-    cur_proc = (fs_getProcessCount(pid) == 1) ? 0 : (rand() % (fs_getProcessCount(pid) -1)) + 1;
+    cur_proc = (fs_getProcessCount(pid) == 1) ? 0 : (rand() % (fs_getProcessCount(pid)));
+    
     
     if (wait_time[cur_proc] > 0) {
       lightLine();
-      printf("process: %d is waiting for %d cycles.\n", pid, wait_time[cur_proc]);
+      printf("process: %d is waiting for %d cycles.\n", cur_proc, wait_time[cur_proc]);
       lightLine();
       
       wait_time[cur_proc]--;
