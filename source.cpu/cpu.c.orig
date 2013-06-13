@@ -485,12 +485,17 @@ main(int argc, char **argv) {
   fs_initialize();
   pt_initialize();
 
+<<<<<<< HEAD
+  currentProgramId = fs_import("./programs.cpu/prog2out.cpu", "prog1");
+
+=======
   if(argc==1)
     currentProgramId = fs_import("./programs.cpu/prog2out.cpu", "prog1");
   if(argc==2)
     currentProgramId = fs_import(argv[1], "prog1");
   if(argc>2)
     currentProgramId = fs_import(argv[1], argv[2]);
+>>>>>>> 7cc6c27a8b8b86192983dfb213606958d437852c
   fs_ls();
   
   loadProgram(currentProgramId);
