@@ -15,7 +15,7 @@ list:
 
 cpu:
 	clear
-	gcc -g ./source.cpu/cpu.c ./source.cpu/config.c ./source.cpu/scheduler.c ./source.cpu/pagetable.c ./source.cpu/filesystem.c ./source.cpu/list.c ./source.cpu/inode.c -o ./compiled.cpu/cpu
+	gcc ./source.cpu/cpu.c ./source.cpu/config.c ./source.cpu/scheduler.c ./source.cpu/pagetable.c ./source.cpu/filesystem2.c ./source.cpu/list.c ./source.cpu/inode.c -o ./compiled.cpu/cpu
 
 filesystem:
 	clear
