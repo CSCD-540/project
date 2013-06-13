@@ -523,6 +523,7 @@ main(int argc, char **argv) {
   // clear the memory
   memset(sm_space, 0, SM_SIZE);
 //end shared memory setup
+
 //start work by Eric Powell (shell)
   char* sm_copy = malloc(128 * sizeof(char));
   char* lsList = malloc(128 * sizeof(char));

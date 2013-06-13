@@ -72,16 +72,6 @@ int main() {
 	    	loop = FALSE;
 	    	strcpy(sm_space, line);
 	    }
-	    else {
-		  	// writes user input string to memory
-		    strcpy(sm_space, line);
-		    
-		    // wait for CPU to respond
-		    usleep(1000);
-		      
-		    // display response from CPU
-		    printf("> %s\n", sm_space);
-		}
 	} //end while
 
 	// release the shared memory
@@ -91,6 +81,7 @@ int main() {
 	return 0;
 } //end main
 
+//all the same for the time being. With more time these would have acted accordingly.
 void shell_ls(char line[], char* sm_space) {
 	// writes user input string to memory
     strcpy(sm_space, line);
