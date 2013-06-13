@@ -16,7 +16,7 @@ int scheduler_nextProcess(int pid) {
   int cur_proc;
   
   do {
-    cur_proc = (pid == 1) ? 0 : (rand() % (pid -1)) + 1;
+    cur_proc = (fs_getProcessCount(pid) == 1) ? 0 : (rand() % (fs_getProcessCount(pid) -1)) + 1;
     
     if (wait_time[cur_proc] > 0) {
       lightLine();
@@ -25,8 +25,8 @@ int scheduler_nextProcess(int pid) {
       
       wait_time[cur_proc]--;
     }
-        
-    if (wait_time[cur_proc] == 0) {
+	//Need the && or every time after it completes once it will enter the if
+    if (wait_time[cur_proc] == 0 && wait_state[cur_proc] == SC_WAITING) {
       wait_state[cur_proc] = SC_DONE_WAITING;
       wait_time[cur_proc] = 0;
       heavyLine();

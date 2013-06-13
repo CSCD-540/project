@@ -40,7 +40,7 @@ executeit() {
   while(1) {    
 cont:
     if(locked == UNLOCKED) {
-      cur_proc = scheduler_nextProcess(pid);
+      cur_proc = scheduler_nextProcess(currentProgramId);
       printf("current process: %d \n", cur_proc);
     }
 
@@ -144,8 +144,9 @@ int exe(int stack[][STACKSIZE], int sp[], int reg[][REGISTERSIZE], int next_inst
         printf("READ,  file descriptor=%d\n", tmp); 
         printf("OS service call  --- <READ> return int read\n");
         push(stack,cur_proc,sp, 777, 13); // dummy fd =777 
+        //need to set wait_state back to ready or will not enter above if again
+        wait_state[cur_proc] = SC_READY;
         }
-      
       break;
 
     case CLOSE :
@@ -169,6 +170,8 @@ int exe(int stack[][STACKSIZE], int sp[], int reg[][REGISTERSIZE], int next_inst
         tmp1 = peek(stack, cur_proc, sp, -1) ;
         printf("WRITE offset= -1,  fd =%d\n", tmp1); 
         printf("OS service call  --- <WRITE> \n");
+        //need to set wait_state back to ready or will not enter above if again
+        wait_state[cur_proc] = SC_READY;
         }
       break;
 
