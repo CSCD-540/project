@@ -16,6 +16,7 @@ int waste;//tracks wasted space, ie space that is too small for header data, thi
  * All are defined as positive values, so node offsets should be subtracted
  * FS_PREV_NODE_OFFSET or FS_PREV_REC_OFFSET are not used, but they are included in case they are needed in the future
  */
+<<<<<<< HEAD
 #define FS_PREV_REC_OFFSET 0
 #define FS_NEXT_REC_OFFSET 1
 #define FS_FID_REC_OFFSET 2
@@ -27,6 +28,85 @@ int waste;//tracks wasted space, ie space that is too small for header data, thi
 #define FS_NAME_NODE_SIZE 16
 #define FS_DATA_NODE_OFFSET (FS_NAME_NODE_OFFSET+FS_NAME_NODE_SIZE)
 #define FS_LOCATION_NODE_OFFSET (1+FS_NAME_NODE_OFFSET+FS_NAME_NODE_SIZE)
+=======
+int fs_findFile(int fid){
+  
+  int index;
+  
+  fs_init();
+  
+  index=lastFill;
+  //break out when file is found, or run out of filled nodes
+  while(filesystem[index-FS_DATA_NODE_OFFSET]!=fid&&index)
+    index=filesystem[index];
+  
+  if(!index){
+    index=-1;
+    printf("\nFile not found\n");
+  }
+  
+  return index;
+}
+
+/**
+ * copies a file to a new one with 'name'
+ */
+void fs_copy(int fid, char* name){
+
+  //int* buf
+  //int* procSizes
+  int len, index, procNum, i;
+   
+  //get file
+  index=fs_findFile(fid); 
+  
+  if(index==-1)
+    return;
+  //get length
+  len=fs_findRecSize(filesystem[index-FS_LOCATION_NODE_OFFSET]);
+  
+  char buf[len];
+  //copy all data to temp array
+  fs_getData(fid);
+  
+  //get proc info
+  procNum=fs_getProcessCount(fid);
+  
+  int procSizes[procNum];
+  
+  for(i=0;i<procNum;i++)
+    procSizes[i]=fs_getProcessSize(fid, i);
+    
+  //add to filesystem with 'name'
+  fs_store(len, buf, name, procNum, procSizes);
+}
+
+/**
+ * returns the size of a particular process of a file or 0 if process does not exist
+ * 
+ * process numbers start at 0
+ * 
+ */
+int fs_getProcessSize(int id, int process){
+  
+  int loc,index;
+  
+  //get file
+  index=fs_findFile(id);
+  
+    if(index==-1)
+    return;
+  
+  //go to record
+  loc=filesystem[index-FS_LOCATION_NODE_OFFSET];
+
+  //retrieve size of process
+  if(process<filesystem[loc+FS_PROC_COUNT_REC_OFFSET])
+    return filesystem[loc+FS_PROC_VALUES_REC_OFFSET+process];
+    
+  return 0;
+}
+>>>>>>> 5872d04b096ff50662781d9780a64084dfbf62f3
 
 /**
  * Search for IFACE to find interface items
@@ -39,11 +119,32 @@ int waste;//tracks wasted space, ie space that is too small for header data, thi
  * *-----------------------------------------------------------------------------------+
  *  start of record->
  * 
+<<<<<<< HEAD
  * Description of structure of meta node
  * +---------------------------------------------------------------------------------------------------------------------------------------------------+
  * |next node|record location(1)|data(1)|file name(16)|next 0 if none(1)|prev 0 if none(1)|last fill loc(1)|last free loc(1)|lastFid(1)|end(1)|waste(1)|
  * +---------------------------------------------------------------------------------------------------------------------------------------------------+
  * 				 	                               <-stat of meta node
+=======
+ * Note: currently always returns 1
+ */
+int* fs_getData(int id){
+
+ 
+  int index=fs_findFile(id);
+  int size=fs_findRecSize(filesystem[index-FS_LOCATION_NODE_OFFSET]);
+  
+  int* buf=malloc(size*sizeof(int));
+  
+  fs_get(id, 0, size, buf);
+  
+  return buf;
+  
+}
+
+/**
+ * Gets a specific page and stores it in buf
+>>>>>>> 5872d04b096ff50662781d9780a64084dfbf62f3
  * 
  * Data can either be the fid in the case of a fillNode or length in the case of a FreeNode
  * Fill nodes are files currently stored
@@ -51,6 +152,7 @@ int waste;//tracks wasted space, ie space that is too small for header data, thi
  * file name can be 7 characters long as it must be 0 terminated
  * 
  */
+<<<<<<< HEAD
 
 /**
  * TODO
@@ -58,6 +160,99 @@ int waste;//tracks wasted space, ie space that is too small for header data, thi
  * take info from importmemory in cpu.c and put in firstRun
  * add support ot append to file (need to add to freeList)
  * move interface items to different file
+=======
+int* fs_getPage(int id, int process, int start, int size){
+ 
+  int procOffset=0, index, loc, i;
+  int* buf=malloc(size*sizeof(int));
+  
+  //get file
+  index=fs_findFile(id);
+
+    if(index==-1)
+      return;
+
+  //get record
+  loc=filesystem[index-FS_LOCATION_NODE_OFFSET];
+  
+  //get process offset by parsing process section of meta data
+  for(i=0;i<FS_PROC_COUNT_REC_OFFSET&&i<process;i++)
+    procOffset+=filesystem[loc+FS_PROC_VALUES_REC_OFFSET+i];
+  
+  fs_get(id, procOffset+start, size, buf);
+
+return buf;
+  
+}
+
+
+/**
+ * Imports file from host filesystem to our virtual file system.
+ * 
+ * returns id of created file
+ */
+int fs_import(char* path, char* name){
+
+  fs_init();
+  
+  int len=1000;
+  int size=0;
+  char temp[len];
+  //char data[size];
+  int i;
+  FILE *fout=fopen(path, "r");
+  int procSize[1];
+
+  //start by getting size
+  while(!feof(fout)){
+    fgets(temp, len, fout);
+    size+=strlen(temp);
+  }
+  
+  char data[size];
+  size=0;
+  
+  //go to beginning of file
+  rewind(fout);
+  
+  //fill data
+  while(!feof(fout)){
+    
+    fgets(temp, len, fout);
+    for(i=0;i<strlen(temp);i++)
+      data[size+i]=temp[i];
+    size+=strlen(temp);
+  }
+  
+  procSize[0]=size;
+  
+  fs_store(size, data, name, 1, procSize);
+  
+  fclose(fout);
+
+  //since was just created, it will be lastFill
+  return filesystem[lastFill-FS_DATA_NODE_OFFSET];
+}
+
+/**
+ * Creates a nameless file then returns start of record data
+ * 
+ * Note: I was not told that this would be needed. I only added it for completeness sake.
+ */
+int fs_addData(int size, int* data){
+  int procSize[1]={size};
+  int loc;
+    fs_store(size, data, 0, 1, procSize);
+
+  loc=filesystem[lastFill-FS_LOCATION_NODE_OFFSET];    
+  
+  return loc+FS_DATA_REC_OFFSET;
+    
+}
+
+/**
+ * Deletes all files
+>>>>>>> 5872d04b096ff50662781d9780a64084dfbf62f3
  */
 
 //run only once, ever. Sets up filesystem parameters
@@ -248,12 +443,40 @@ void fs_list(){
  * length: The number of 'words' in the inode, a word is an int in our filesystem
  * 
  */
+<<<<<<< HEAD
 typedef struct {
   int fid;
   int filename[FS_NAME_NODE_SIZE];
   int length;
 }inode;
 
+=======
+void fs_ls(){
+  
+  //in case not initialized already
+  fs_init();
+ 
+  int hasPrev=lastFill;
+  int i;
+  
+  printf("\nFilled list:\n");
+  while(hasPrev){
+    printf("Name: ");
+    for(i=0;filesystem[hasPrev-FS_NAME_NODE_OFFSET-i]&&i<FS_NAME_NODE_SIZE;i++)
+      printf("%c", filesystem[hasPrev-FS_NAME_NODE_OFFSET-i]);
+    
+    printf(" FID: %d\n",filesystem[hasPrev-FS_DATA_NODE_OFFSET]);
+    hasPrev=filesystem[hasPrev];
+  }
+  
+  hasPrev=lastFree;
+  printf("Free list:\n");
+  while(hasPrev){
+    printf("Size: %d\n",filesystem[hasPrev-FS_DATA_NODE_OFFSET]);
+    hasPrev=filesystem[hasPrev];
+  }
+}
+>>>>>>> 5872d04b096ff50662781d9780a64084dfbf62f3
 
 /**
  * Returns number of filled inodes
@@ -280,10 +503,17 @@ void fs_list_intf(inode* buf, int len){
   fs_init();
  
   int hasPrev=lastFill;
+<<<<<<< HEAD
   int dataLoc=0;
   int i,j;
     
   j=0;
+=======
+  int j,id;
+  int len=fs_getINodeCount();
+  INode temp;
+  
+>>>>>>> 5872d04b096ff50662781d9780a64084dfbf62f3
   hasPrev=lastFill;
   while(hasPrev&&j<len){
     len--;
@@ -295,8 +525,12 @@ void fs_list_intf(inode* buf, int len){
 	buf[len].filename[i]=filesystem[hasPrev-i];
      buf[len].filename[i-FS_NAME_NODE_OFFSET]=0;
     
+<<<<<<< HEAD
     dataLoc=filesystem[hasPrev-FS_LOCATION_NODE_OFFSET];//location of data
     buf[len].length=filesystem[dataLoc+FS_SIZE_REC_OFFSET];//length of data
+=======
+    buf[j]=*fs_getNode(id);
+>>>>>>> 5872d04b096ff50662781d9780a64084dfbf62f3
 
     hasPrev=filesystem[hasPrev];
     j++;
@@ -304,7 +538,67 @@ void fs_list_intf(inode* buf, int len){
 }
 
 /**
+<<<<<<< HEAD
  * IFACE
+=======
+ * Returns an INode with a fid of id
+ */
+INode* fs_getNode(int id){
+  
+  INode *toReturn=malloc(sizeof(INode));
+  int index, loc, i;
+  
+  index=fs_findFile(id);
+  
+  if(index==-1)
+    return 0;
+  
+  loc=filesystem[index-FS_LOCATION_NODE_OFFSET];
+  
+  toReturn->id=filesystem[index-FS_DATA_NODE_OFFSET];
+  
+  toReturn->name=malloc(FS_NAME_NODE_SIZE*sizeof(char *));
+  
+  //copy filename
+  for(i=0;i<FS_NAME_NODE_SIZE&&filesystem[index-i];i++)
+    toReturn->name[i]=filesystem[index-i-FS_NAME_NODE_OFFSET];
+  toReturn->name[i]=0;
+    
+  toReturn->fileSize=filesystem[loc+FS_SIZE_REC_OFFSET];//length of data  
+  toReturn->fileStart=loc;
+  
+  toReturn->processes=fs_getProcessCount(id);
+  
+  //first one is special
+  toReturn->processStart[0]=loc+FS_DATA_REC_OFFSET;
+  
+  for(i=0;i<toReturn->processes;i++){
+    if(i>0)
+      toReturn->processStart[i]=loc+FS_DATA_REC_OFFSET+toReturn->processSize[i-1];
+    toReturn->processSize[i]=filesystem[loc+FS_PROC_VALUES_REC_OFFSET+i];
+  }
+ 
+ return toReturn;
+ 
+}
+
+/**
+ * Takes a file and adds it to the database then returns the file id.
+ */
+int fs_addFile(char* name, int fileSize, int processes, int* processStart, int* processSize, int* data){
+  
+  fs_init();
+  //not sure what to do with processStart I don't think I need it  
+  fs_store(fileSize, data, name, processes, processSize);
+  
+  //id will be the lastFill-FS_DATA_NODE_OFFSET since it was the last filled
+  return filesystem[lastFill-FS_DATA_NODE_OFFSET];
+  
+}
+
+
+/**
+>>>>>>> 5872d04b096ff50662781d9780a64084dfbf62f3
  * Returns data based upon a file id. It takes data from the offset to the length, assuming offset+length < the total file length
  * If offset is greater than file length, it will return 0
  * If offset+length is greater than file length, it will return 0
@@ -313,7 +607,11 @@ void fs_list_intf(inode* buf, int len){
  * 
  * Warning, has not been fully tested
  */
+<<<<<<< HEAD
 void fs_get_intf(int fid, int offset, int length, int* toReturn){
+=======
+void fs_get(int fid, int offset, int length, int* toReturn){
+>>>>>>> 5872d04b096ff50662781d9780a64084dfbf62f3
 
   int hasPrev=lastFill;
   int dataLoc=0;
@@ -387,7 +685,7 @@ inode fs_store_intf(int* data, int len){
  
 }
 
-void fs_dump(){
+void fs_dumpAllData(){
   int i;
   for(i=0;i<FILESYSTEM_SIZE;i++)
     printf("%4d ", filesystem[i]);

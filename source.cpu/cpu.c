@@ -485,19 +485,20 @@ main(int argc, char **argv) {
   int    loop;
   int    sm_id;
   char* sm_space;
-  
+
+/* commented out to get the CPU to run without a file
   if(argc != 2) { 
     fprintf(stderr, "usage: cpu <program> \n");
     exit(0);
   }
-
+*/
   system("clear");
     
   heavyLine();
   printf("cpu.c started...\n");
   heavyLine();
   
-  getchar();
+//  getchar(); //<--- this line causes the CPU to hold up and not read from shared memory
   
   fs_initialize();
   pt_initialize();
@@ -507,15 +508,13 @@ main(int argc, char **argv) {
   // create the segment and set permissions
   if ((sm_id = shmget(SM_KEY, SM_SIZE, IPC_CREAT | 0666)) < 0) 
     return -1;
-  
+
   // attach the segment to our data space
   if ((sm_space = shmat(sm_id, NULL, 0)) == (char *) -1) 
     return -2;
  
   // clear the memory
   memset(sm_space, 0, SM_SIZE);
-
-  strcpy(sm_space, "+CPU_WAITING+");
   
   // read user input from client and print to screen
   loop = TRUE;
@@ -525,25 +524,22 @@ main(int argc, char **argv) {
       printf("received: %s", sm_space);
     }
     else if(strncmp(sm_space, "ls", 1) == 0) {
-      // initial file listing
       char* s = sm_space;
-
+      //remove the command from the front of the line
+      int x;
+      for(x = 0; x < 2; x++) {
+          s[x] = ' ';
+      } //end for
+      printf("received: %s", sm_space);
+      
       ls(s);
 
       printf("file listing: \n%s\n", s);
       strcpy(sm_space, s);
     } //end if
-/*
+
     else if(strncmp(sm_space, "open", 4) == 0) {
-
-      // make response
-      strcpy(sm_space, "results of opening!\n");
-
-      usleep(1500);
-    
-      // resume loop
-      strcpy(sm_space, "+CPU_WAITING+");
-
+      executeit();
     }
     else if(strncmp(sm_space, "import", 6) == 0) {
       printf("Importing File...\n");
@@ -568,14 +564,14 @@ main(int argc, char **argv) {
       // resume loop
       strcpy(sm_space, "+CPU_WAITING+");
     } //end else
-*/
+
   } //end while
 
 
 
 
 
-
+/* commented out to get the CPU to run without it
   fs_ls();
   getchar();
   
@@ -587,7 +583,7 @@ main(int argc, char **argv) {
   loadProgram(currentProgramId);
 
   executeit();
-
+*/
   
   
   return 0;

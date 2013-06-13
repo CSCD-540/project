@@ -1,11 +1,11 @@
 #include "config.h"
-#include "filesystem2.h"
-
+#include "filesystem.h"
 
 #define TEST_FILES        4
 #define TEST_DATA_SIZE   30
 
-/* filesystem2.c tester */
+/* filesystem.c tester */
+
 
 int main() {
   int i;
@@ -25,7 +25,6 @@ int main() {
   
   // list the files
   fs_ls();
-
 
   // remove file with id of 2
   fs_removeFile(2);
@@ -64,9 +63,12 @@ int main() {
   
   fs_ls();
   fs_removeFile(6);
+  heavyLine();
+
   fs_dumpAllData();
 
   fs_ls();  
+
   fs_copy(5, "progA");
   
   fs_ls();
@@ -74,17 +76,17 @@ int main() {
   // testing paging
 
   INode* node;
-  node = (INode*)fs_getNode(4);
+  node = fs_getNode(4);
 
   int* page;
-
+  
   page = calloc(PAGE_SIZE, sizeof(int));
-
+  
   for (i = 0; i < node->processes; i++) {
     heavyLine();
     printf("process: %d \n", i);
     for (j = 0; j < (node->processSize[i] / PAGE_SIZE); j++) {
-      page = fs_getPage(4, i, j * PAGE_SIZE, PAGE_SIZE);
+      page=fs_getPage(4, i, j * PAGE_SIZE, PAGE_SIZE);
       for (k = 0; k < PAGE_SIZE; k++)
         printf("%4d ", page[k]);
       printf("\n");
@@ -92,10 +94,13 @@ int main() {
   }
   heavyLine();
   
-
+//Since I cannot implementation of certain things at this point, we either need to have a memory leak
+//or do the following when finished with a set of inodes
+  free(node->name);
+  free(node);
 
   
-  //fs_close();
+//  fs_close();
 
    return 0; 
 }

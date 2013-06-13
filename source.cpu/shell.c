@@ -40,10 +40,31 @@ int main() {
 	    	shell_ls(line, sm_space);
 	    }
 	    else if(strncmp(line, "open", 4) == 0) {
-	    	shell_openFile(line, sm_space);
+	    	shell_open(line, sm_space);
+	    }
+	    else if(strncmp(line, "rm", 2) == 0) {
+	    	shell_rm(line, sm_space);
+	    }
+	    else if(strncmp(line, "copy", 4) == 0) {
+	    	shell_copy(line, sm_space);
 	    }
 	    else if(strncmp(line, "import", 6) == 0) {
-	    	shell_importFile(line, sm_space);
+	    	shell_import(line, sm_space);
+	    }
+	    else if(strncmp(line, "load", 4) == 0) {
+	    	shell_load(line, sm_space);
+	    }
+	    else if(strncmp(line, "run", 3) == 0) {
+	    	shell_run(line, sm_space);
+	    }
+	    else if(strncmp(line, "dump", 4) == 0) {
+	    	shell_dump(line, sm_space);
+	    }
+	    else if(strncmp(line, "cat", 3) == 0) {
+	    	shell_cat(line, sm_space);
+	    }
+	    else if(strncmp(line, "help", 4) == 0) {
+	    	shell_help(line, sm_space);
 	    }
 	    else if (strncmp(line, "q", 1) == 0) {
 	    	loop = FALSE;
@@ -57,7 +78,7 @@ int main() {
 		    usleep(1000);
 		      
 		    // display response from CPU
-		    printf("received: %s \n", sm_space);
+		    printf("%s\n", sm_space);
 		}
 	} //end while
 
@@ -69,16 +90,6 @@ int main() {
 } //end main
 
 void shell_ls(char line[], char* sm_space) {
-
-	//remove the command from the front of the line
-	int x;
-	for(x = 0; x < 2; x++) {
-		if(x == 0)
-			line[x] = 1;
-		else
-			line[x] = ' ';
-	} //end for
-
 	// writes user input string to memory
     strcpy(sm_space, line);
     
@@ -86,12 +97,10 @@ void shell_ls(char line[], char* sm_space) {
     usleep(1000);
 
     // display response from CPU
-    printf("received: %s", sm_space);
-}
+    printf("%s", sm_space);
+} //end ls
 
-void shell_openFile(char line[], char* sm_space) {
-
-	//for testing
+void shell_open(char line[], char* sm_space) {
 	// writes user input string to memory
     strcpy(sm_space, line);
     
@@ -99,13 +108,10 @@ void shell_openFile(char line[], char* sm_space) {
     usleep(1000);
 
     // display response from CPU
-    printf("received: %s", sm_space);
-}
+    printf("%s", sm_space);
+} //end open
 
-void shell_importFile(char line[], char* sm_space) {
-
-
-	//for testing
+void shell_import(char line[], char* sm_space) {
 	// writes user input string to memory
     strcpy(sm_space, line);
     
@@ -113,5 +119,82 @@ void shell_importFile(char line[], char* sm_space) {
     usleep(1000);
 
     // display response from CPU
-    printf("received: %s", sm_space);
-}
+    printf("%s", sm_space);
+} //end open
+
+void shell_rm(char line[], char* sm_space) {
+	// writes user input string to memory
+    strcpy(sm_space, line);
+    
+    // wait for CPU to respond
+    usleep(1000);
+
+    // display response from CPU
+    printf("%s", sm_space);
+} //end rm
+
+void shell_copy(char line[], char* sm_space) {
+	// writes user input string to memory
+    strcpy(sm_space, line);
+    
+    // wait for CPU to respond
+    usleep(1000);
+
+    // display response from CPU
+    printf("%s", sm_space);
+} //end copy
+
+void shell_load(char line[], char* sm_space) {
+	// writes user input string to memory
+    strcpy(sm_space, line);
+    
+    // wait for CPU to respond
+    usleep(1000);
+
+    // display response from CPU
+    printf("%s", sm_space);
+} //end load
+
+void shell_run(char line[], char* sm_space) {
+	// writes user input string to memory
+    strcpy(sm_space, line);
+    
+    // wait for CPU to respond
+    usleep(1000);
+
+    // display response from CPU
+    printf("%s", sm_space);
+} //end run
+
+void shell_dump(char line[], char* sm_space) {
+	// writes user input string to memory
+    strcpy(sm_space, line);
+    
+    // wait for CPU to respond
+    usleep(1000);
+
+    // display response from CPU
+    printf("%s", sm_space);
+} //end dump
+
+void shell_cat(char line[], char* sm_space) {
+	// writes user input string to memory
+    strcpy(sm_space, line);
+    
+    // wait for CPU to respond
+    usleep(1000);
+
+    // display response from CPU
+    printf("%s", sm_space);
+} //end cat
+
+void shell_help(char line[], char* sm_space) {
+	// writes user input string to memory
+    strcpy(sm_space, line);
+    
+    // wait for CPU to respond
+    usleep(1000);
+
+    // display response from CPU
+    printf("%s", sm_space);
+} //end help
