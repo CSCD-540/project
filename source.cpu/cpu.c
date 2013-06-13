@@ -124,7 +124,7 @@ int exe(int stack[][STACKSIZE], int sp[], int reg[][REGISTERSIZE], int next_inst
       i = 0;
       while ( name[i] =  pt_getInstruction(cur_proc, tmp1+i++) );
       printf("filename passed = %s\n", name);
-      printf("OS service call  --- <OPEN>  return file descriptor!(987 is fake)\n");
+      printf("OS service call  --- <OPEN>  return file descriptor!\n");
       push(stack, cur_proc, sp, 987, 11); // dummy fd =987 
 
     break;
@@ -143,7 +143,7 @@ int exe(int stack[][STACKSIZE], int sp[], int reg[][REGISTERSIZE], int next_inst
       
         tmp = peek(stack,cur_proc,sp, 0);
         printf("READ,  file descriptor=%d\n", tmp); 
-        printf("OS service call  --- <READ> return int read (777 is fake)\n");
+        printf("OS service call  --- <READ> return int read\n");
         push(stack,cur_proc,sp, 777, 13); // dummy fd =777 
         }
       
