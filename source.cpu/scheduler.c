@@ -43,5 +43,3 @@ int scheduler_nextProcess(int pid) {
   
   return cur_proc;
 }
-
-} //end of nextProcess
