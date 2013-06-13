@@ -1,18 +1,16 @@
 #include "scheduler.h"
-
-extern int wait_state[MAXPRO];
-extern int wait_time[MAXPRO];
-
-void scheduler_init() {
-  int i; 
-  
-  for (i = 0; i < MAXPRO; i++) {
-    wait_time[i] = SC_READY;
-    wait_state[i] = SC_READY;
-  }
-}
+ 
+ void scheduler_init(int pid) {
+	int i;
+	for(i = 0; i < pid; i++) { //init the number of pids to READY
+		wait_time[i] = READY;
+		wait_state[i] = READY;
+	}
+}//end init
 
 int scheduler_nextProcess(int pid) {
+<<<<<<< HEAD
+=======
 <<<<<<< HEAD
   int cur_proc;
   
@@ -45,6 +43,7 @@ int scheduler_nextProcess(int pid) {
   return cur_proc;
 }
 =======
+>>>>>>> fa0a3a7ef8a4e3935096720cf365d2c8421c22cd
 	int cur_proc;
 	
 	do {
@@ -63,5 +62,9 @@ int scheduler_nextProcess(int pid) {
 	}while(wait_state[cur_proc] == WAITING); //if cur_proc state is WAITING go through the do while again
 	
 	return cur_proc;
+<<<<<<< HEAD
+=======
 >>>>>>> parent of dbaa0a9... filesystem now works equally well as filesystem2 for all progs except prog3, added debugging flags to makefile, all other changes should be minor
+>>>>>>> fa0a3a7ef8a4e3935096720cf365d2c8421c22cd
 
+} //end of nextProcess
