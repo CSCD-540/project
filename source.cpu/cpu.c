@@ -109,8 +109,6 @@ int exe(int stack[][STACKSIZE], int sp[], int reg[][REGISTERSIZE], int next_inst
   char name[11];
 
   i = next_inst[cur_proc]; 
-
-  printf("\ni: %d cur_proc: %d\n", i, cur_proc);
   
   switch (pt_getInstruction(cur_proc, i)) {
     /** OPEN, READ, CLOSE, WRITE, SEEK ::  OS services **/
@@ -120,7 +118,7 @@ int exe(int stack[][STACKSIZE], int sp[], int reg[][REGISTERSIZE], int next_inst
       tmp1 = peek(stack, cur_proc, sp, -1) ;
       printf("OPEN offset= -1,  data=%d\n", tmp1); 
       i = 0;
-      while ( name[i] =  pt_getInstruction(cur_proc, tmp1+i++) );
+      while ( name[i] = pt_getInstruction(cur_proc, tmp1+i++) );
       printf("filename passed = %s\n", name);
       printf("OS service call  --- <OPEN>  return file descriptor!(987 is fake)\n");
       push(stack, cur_proc, sp, 987, 11); // dummy fd =987 
@@ -472,11 +470,11 @@ main(int argc, char **argv) {
   int i;
   int j;
   int id;
-  
-  if(argc != 1) { 
-    fprintf(stderr, "usage: cpu \n");
-    exit(0);
-  }
+    
+  //if(argc != 1) { 
+  //  fprintf(stderr, "usage: cpu \n");
+  //  exit(0);
+ // }
 
   system("clear");
     
@@ -487,9 +485,12 @@ main(int argc, char **argv) {
   fs_initialize();
   pt_initialize();
   
-  currentProgramId = fs_import("./programs.cpu/prog3out.cpu", "prog1");
-    
-  fs_dumpAllData();
+  if(argc==1)
+    currentProgramId = fs_import("./programs.cpu/prog3out.cpu", "prog1");
+  if(argc==2)
+    currentProgramId = fs_import(argv[1], "prog1");
+  if(argc>2)
+    currentProgramId = fs_import(argv[1], argv[2]);
   
   loadProgram(currentProgramId);
 
