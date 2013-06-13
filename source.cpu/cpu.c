@@ -511,7 +511,7 @@ main(int argc, char **argv) {
   pt_initialize();
   scheduler_init();
 
-//shared memory
+//shared memory setup - Thanks to Andrew Canfield
   // create the segment and set permissions
   if ((sm_id = shmget(SM_KEY, SM_SIZE, IPC_CREAT | 0666)) < 0) 
     return -1;
@@ -522,7 +522,8 @@ main(int argc, char **argv) {
  
   // clear the memory
   memset(sm_space, 0, SM_SIZE);
-
+//end shared memory setup
+//start work by Eric Powell (shell)
   char* sm_copy = malloc(128 * sizeof(char));
   char* lsList = malloc(128 * sizeof(char));
 
@@ -530,7 +531,7 @@ main(int argc, char **argv) {
   char* firstVar = malloc(128 * sizeof(char));
   char* secondVar = malloc(128 * sizeof(char));
 
-  strcpy(sm_space, "start");
+  strcpy(sm_space, "startedCPU"); //putting something in shared memory
   
   loop = TRUE;
   while (loop) {
@@ -539,13 +540,15 @@ main(int argc, char **argv) {
 
     if (strncmp(command, "q", 1) == 0) {
       loop = FALSE;
-      printf("received: %s", sm_space);
+      if(SH_DEBUG)
+        printf("received: %s", sm_space);
     }
     else if(strncmp(command, "ls", 2) == 0) {
       ls(lsList);
 
-      printf("%s", lsList);
-      printf("file listing: \n%s\n", lsList);
+      if(SH_DEBUG)
+        printf("%s", lsList);
+      
       strcpy(sm_space, lsList);
     } //end if
 
@@ -588,6 +591,7 @@ main(int argc, char **argv) {
     }
 
   } //end while
+  //end work by Eric Powell
 /*
   free(command);
   free(firstVar);

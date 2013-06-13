@@ -3,6 +3,7 @@
 #include <string.h>
 #include <errno.h>
 
+#include "config.h"
 #include "sharedmemory.h"
 #include "shell.h"
 
@@ -10,7 +11,7 @@
 #define DELIMS " \t\r\n"
 
 int main() {
-  /* shared memory */
+  /* shared memory - Thanks to Andrew Canfield*/
   int loop;
   int   sm_id;
   char* sm_space;
@@ -34,7 +35,8 @@ int main() {
 	while(loop) {
 	    printf("> ");
 	    fgets(line, MAX_LENGTH, stdin);
-	    printf("line: %s \n", line);
+	    if(SH_DEBUG)
+			printf("line: %s \n", line);
 
 	    if(strncmp(line, "ls", 2) == 0) {
 	    	shell_ls(line, sm_space);
@@ -78,7 +80,7 @@ int main() {
 		    usleep(1000);
 		      
 		    // display response from CPU
-		    printf("%s\n", sm_space);
+		    printf("> %s\n", sm_space);
 		}
 	} //end while
 
@@ -97,7 +99,7 @@ void shell_ls(char line[], char* sm_space) {
     usleep(1000);
 
     // display response from CPU
-    printf("%s", sm_space);
+    printf("> %s\n", sm_space);
 } //end ls
 
 void shell_open(char line[], char* sm_space) {
@@ -108,7 +110,7 @@ void shell_open(char line[], char* sm_space) {
     usleep(1000);
 
     // display response from CPU
-    printf("%s", sm_space);
+    printf("> %s\n", sm_space);
 } //end open
 
 void shell_import(char line[], char* sm_space) {
@@ -119,7 +121,7 @@ void shell_import(char line[], char* sm_space) {
     usleep(1000);
 
     // display response from CPU
-    printf("%s", sm_space);
+    printf("> %s\n", sm_space);
 } //end open
 
 void shell_rm(char line[], char* sm_space) {
@@ -130,7 +132,7 @@ void shell_rm(char line[], char* sm_space) {
     usleep(1000);
 
     // display response from CPU
-    printf("%s", sm_space);
+    printf("> %s\n", sm_space);
 } //end rm
 
 void shell_copy(char line[], char* sm_space) {
@@ -141,7 +143,7 @@ void shell_copy(char line[], char* sm_space) {
     usleep(1000);
 
     // display response from CPU
-    printf("%s", sm_space);
+    printf("> %s\n", sm_space);
 } //end copy
 
 void shell_load(char line[], char* sm_space) {
@@ -152,7 +154,7 @@ void shell_load(char line[], char* sm_space) {
     usleep(1000);
 
     // display response from CPU
-    printf("%s", sm_space);
+    printf("> %s\n", sm_space);
 } //end load
 
 void shell_run(char line[], char* sm_space) {
@@ -163,7 +165,7 @@ void shell_run(char line[], char* sm_space) {
     usleep(1000);
 
     // display response from CPU
-    printf("%s", sm_space);
+    printf("> %s\n", sm_space);
 } //end run
 
 void shell_dump(char line[], char* sm_space) {
@@ -174,7 +176,7 @@ void shell_dump(char line[], char* sm_space) {
     usleep(1000);
 
     // display response from CPU
-    printf("%s", sm_space);
+    printf("> %s\n", sm_space);
 } //end dump
 
 void shell_cat(char line[], char* sm_space) {
@@ -185,7 +187,7 @@ void shell_cat(char line[], char* sm_space) {
     usleep(1000);
 
     // display response from CPU
-    printf("%s", sm_space);
+    printf("> %s\n", sm_space);
 } //end cat
 
 void shell_help(char line[], char* sm_space) {
@@ -196,5 +198,5 @@ void shell_help(char line[], char* sm_space) {
     usleep(1000);
 
     // display response from CPU
-    printf("%s", sm_space);
+    printf("> %s\n", sm_space);
 } //end help

@@ -36,6 +36,8 @@
   
   #define SC_READ_TIME   100
   #define SC_WRITE_TIME  200
+
+  #define SH_DEBUG         0
   
   #define FILE_PATH   "./programs.cpu/"
   
