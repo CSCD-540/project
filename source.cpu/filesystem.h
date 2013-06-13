@@ -29,7 +29,8 @@
 #define FS_DATA_NODE_OFFSET (FS_NAME_NODE_OFFSET+FS_NAME_NODE_SIZE)
 #define FS_LOCATION_NODE_OFFSET (1+FS_NAME_NODE_OFFSET+FS_NAME_NODE_SIZE)
 
-#define FILESYSTEM_SIZE 4096
+//FS_SIZE is in config.h
+#define FILESYSTEM_SIZE FS_SIZE
 #define DEFRAG 0.6
 #define FS_DEBUG 0
 
@@ -84,7 +85,7 @@ int* fs_getPage(int id, int process, int start, int size);
 
 int fs_getINodeCount();
 INode* fs_getNode(int id);
-void fs_getAllNodes();
+void fs_getAllNodes(INode *nodes[]);
 
 int fs_getProcessCount(int id);
 int fs_getProcessSize(int id, int process);

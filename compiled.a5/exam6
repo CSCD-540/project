@@ -1,0 +1,37 @@
+x,y,z;
+flag[0]=0;
+flag[1]=0;
+turn=0;
+process p0
+{if((y==8) AND (z==8)){halt;}
+}
+process p1
+{ flag[0] = 1;
+while(flag[1]==1){
+if(turn==1){flag[0]=0;
+while(turn==1){;}
+flag[0]=1;
+}
+}
+  while (r0<20 )
+  {  x = x+1; flag = 1; r0=r0+1;
+  }
+turn=1;
+flag[0]=0;
+  y=8;
+}
+process p1
+{ flag[1] = 1;
+while(flag[0]==1){
+if(turn==0){flag[1]=0;
+while(turn==0){;}
+flag[0]=1;
+}
+}
+  while (r0<20 )
+  {  x = x+1; flag = 1; r0=r0+1;
+  }
+turn=0;
+flag[1]=0;
+z=8;
+}
