@@ -542,39 +542,46 @@ main(int argc, char **argv) {
     } //end if
 
     else if(strncmp(sm_space, "open", 4) == 0) {
-      executeit();
+      
     }
     else if(strncmp(sm_space, "import", 6) == 0) {
-      printf("Importing File...\n");
+      char* s = sm_space;
 
-      //code to import file in the cpu
-
-      // make response
-      strcpy(sm_space, "results of import!\n");
-
-      usleep(1500);
-    
-      // resume loop
-      strcpy(sm_space, "+CPU_WAITING+");
-
+      fs_import(s, s);
     }
-    else {
-      // make response
-      strcpy(sm_space, "response from CPU\n");
+    else if(strncmp(sm_space, "rm", 2) == 0) {
+      char* s = sm_space;
 
-      usleep(1500);
-    
-      // resume loop
-      strcpy(sm_space, "+CPU_WAITING+");
-    } //end else
+      fs_rm(s);
+    }
+    else if(strncmp(sm_space, "copy", 4) == 0) {
+      char* s = sm_space;
+      
+      fs_copy();
+    }
+    else if(strncmp(sm_space, "load", 4) == 0) {
+      char* s = sm_space;
+
+      load(s);
+    }
+    else if(strncmp(sm_space, "run", 3) == 0) {
+      executeit();
+    }
+    else if(strncmp(sm_space, "dump", 4) == 0) {
+      fs_dump();
+    }
+    else if(strncmp(sm_space, "cat", 3) == 0) {
+      char* s = sm_space;
+
+      cat(s);
+    }
+    else if(strncmp(sm_space, "help", 4) == 0) {
+      help();
+    }
 
   } //end while
 
-
-
-
-
-/* commented out to get the CPU to run without it
+/* commented out to get the CPU to run with shell
   fs_ls();
   getchar();
   
