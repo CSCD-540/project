@@ -126,9 +126,9 @@ int exe(int stack[][STACKSIZE], int sp[], int reg[][REGISTERSIZE], int next_inst
       
     case READ :
 	  //If it is a processes first time to READ then simulate a wait
- 	  if(wait_state[cur_proc] == SC_READY || wait_time[cur_proc] == SC_READY) {
+ 	  if(wait_state[cur_proc] == READY || wait_time[cur_proc] == READY) {
 		wait_time[cur_proc] = 100;
-		wait_state[cur_proc] = SC_WAITING;
+		wait_state[cur_proc] = WAITING;
 		heavyLine();
 		printf("Process %d is entering waiting state\n", cur_proc);
 		heavyLine();
@@ -148,9 +148,9 @@ int exe(int stack[][STACKSIZE], int sp[], int reg[][REGISTERSIZE], int next_inst
     
     case WRITE :
 	  //If it is a processes first time to WRITE simulate wait
-	  if(wait_state[cur_proc] == SC_READY || wait_time[cur_proc] == SC_READY) {
+	  if(wait_state[cur_proc] == READY || wait_time[cur_proc] == READY) {
 		wait_time[cur_proc] = 100;
-		wait_state[cur_proc] = SC_WAITING;
+		wait_state[cur_proc] = WAITING;
 		heavyLine();
 		printf("Process %d is entering waiting state\n", cur_proc);
 		heavyLine();
