@@ -36,8 +36,10 @@ int main() {
 	    fgets(line, MAX_LENGTH, stdin);
 	    printf("line: %s \n", line);
 
-	    //basic template
-	    if(strncmp(line, "open", 4) == 0) {
+	    if(strncmp(line, "ls", 2) == 0) {
+	    	shell_ls(line, sm_space);
+	    }
+	    else if(strncmp(line, "open", 4) == 0) {
 	    	shell_openFile(line, sm_space);
 	    }
 	    else if(strncmp(line, "import", 6) == 0) {
@@ -65,6 +67,27 @@ int main() {
 	
 	return 0;
 } //end main
+
+void shell_ls(char line[], char* sm_space) {
+
+	//remove the command from the front of the line
+	int x;
+	for(x = 0; x < 2; x++) {
+		if(x == 0)
+			line[x] = 1;
+		else
+			line[x] = ' ';
+	} //end for
+
+	// writes user input string to memory
+    strcpy(sm_space, line);
+    
+    // wait for CPU to respond
+    usleep(1000);
+
+    // display response from CPU
+    printf("received: %s", sm_space);
+}
 
 void shell_openFile(char line[], char* sm_space) {
 

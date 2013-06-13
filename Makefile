@@ -15,7 +15,7 @@ list:
 
 cpu:
 	clear
-	gcc ./source.cpu/cpu.c ./source.cpu/config.c ./source.cpu/scheduler.c ./source.cpu/pagetable.c ./source.cpu/filesystem2.c ./source.cpu/list.c ./source.cpu/inode.c -o ./compiled.cpu/cpu
+	gcc ./source.cpu/cpu.c ./source.cpu/config.c ./source.cpu/scheduler.c ./source.cpu/pagetable.c ./source.cpu/filesystem2.c ./source.cpu/list.c ./source.cpu/inode.c -o ./compiled.cpu/cpu ./source.cpu/sharedmemory.h
 
 filesystem:
 	gcc ./source.cpu/filesystem.c -o ./compiled.cpu/filesystem
@@ -33,7 +33,6 @@ scheduler:
 
 shell:
 	clear
-	gcc ./source.cpu/cpu2.c -o ./compiled.cpu/cpu2
 	gcc ./source.cpu/shell.c -o ./compiled.cpu/shell
 
 # usage: make run program="prog1out"
@@ -51,6 +50,9 @@ runShell:
 
 runCPU2:
 	./compiled.cpu/cpu2
+
+runCPU:
+	./compiled.cpu/cpu
 
 fs2test:
 	clear
