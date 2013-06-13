@@ -501,7 +501,7 @@ main(int argc, char **argv) {
   printf("cpu.c started...\n");
   heavyLine();
   
-//  getchar(); //<--- this line causes the CPU to hold up and not read from shared memory
+//  getchar();
   
   fs_initialize();
   pt_initialize();
@@ -518,24 +518,23 @@ main(int argc, char **argv) {
  
   // clear the memory
   memset(sm_space, 0, SM_SIZE);
+
+  char *command = malloc(10 * sizeof(char));
+  char *firstVar = malloc(128 * sizeof(char));
+  char *secondVar = malloc(128 * sizeof(char));
+
+  strcpy(sm_space, "start");
   
-  //This is all the logic for the shell. Some of it is not implemented
-  //all the way since I do not know the complete work up for some of the
-  //other systems.
   loop = TRUE;
   while (loop) {
-    char* s = sm_space;
-    char* command;
-    //get the command from the string
-    command = strtok(s, " ");
+    command = strtok(sm_space, " ");
 
     if (strncmp(command, "q", 1) == 0) {
       loop = FALSE;
       printf("received: %s", sm_space);
     }
     else if(strncmp(command, "ls", 2) == 0) {
-      char* lsList = strtok(s, " ");
-      
+      char* lsList;
       ls(lsList);
 
       printf("file listing: \n%s\n", lsList);
